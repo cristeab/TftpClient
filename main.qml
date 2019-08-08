@@ -1,9 +1,9 @@
 import QtQuick 2.13
-import QtQuick.Window 2.13
+import QtQuick.Controls 2.12
 
-Window {
+ApplicationWindow {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Hello World")
+    title: qsTr("TFTP Client")
 }
