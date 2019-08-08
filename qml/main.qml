@@ -23,6 +23,7 @@ ApplicationWindow {
     }
 
     Grid {
+        id: grid
         anchors {
             top: logo.bottom
             topMargin: 20
@@ -62,6 +63,28 @@ ApplicationWindow {
         Button {
             display: AbstractButton.TextOnly
             text: "..."
+            onClicked: {
+                //TODO
+            }
+        }
+    }
+    Row {
+        anchors {
+            top: grid.bottom
+            topMargin: 20
+            horizontalCenter: parent.horizontalCenter
+        }
+        spacing: 10
+        Button {
+            display: AbstractButton.TextOnly
+            text: qsTr("Start")
+            onClicked: {
+                //TODO
+            }
+        }
+        Button {
+            display: AbstractButton.TextOnly
+            text: qsTr("Cancel")
             onClicked: {
                 //TODO
             }
