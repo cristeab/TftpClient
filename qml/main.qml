@@ -30,9 +30,9 @@ ApplicationWindow {
             horizontalCenter: parent.horizontalCenter
         }
         rowSpacing: 5
-        columnSpacing: 5
+        columnSpacing: 10
         columns: 3
-        rows: 2
+        rows: 3
         Label {
             height: hostTextField.height
             verticalAlignment: Text.AlignVCenter
@@ -76,6 +76,8 @@ ApplicationWindow {
             id: workingFolderField
             placeholderText: qsTr("Folder where all downloaded files are created")
             width: hostTextField.width
+            text: client.workingFolder
+            onEditingFinished: client.workingFolder = text
         }
         Button {
             display: AbstractButton.TextOnly

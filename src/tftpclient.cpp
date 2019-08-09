@@ -1,8 +1,10 @@
 #include "tftpclient.h"
 #include <QFile>
+#include <QStandardPaths>
 
 TftpClient::TftpClient(QObject *parent) : QObject(parent)
 {
+    setWorkingFolder(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
     setObjectName("client");
 }
 
@@ -32,7 +34,6 @@ bool TftpClient::put(const QString &filename)
         return false;
     }
     const QByteArray transmittingFile = ofile.readAll();
-    ofile.close();
     if (transmittingFile.isEmpty()) {
         qCritical() << "Input file is empty";
         return false;
@@ -60,6 +61,7 @@ bool TftpClient::put(const QString &filename)
     // CREATE PACKET COUNTERS TO KEEP TRACK OF MESSAGES
     unsigned short incomingPacketNumber = 0;
     unsigned short outgoingPacketNumber = 0;
+    char *const outPtr = reinterpret_cast<char*>(&outgoingPacketNumber);
 
     // NOW WAIT HERE FOR INCOMING DATA
     bool messageCompleteFlag = false;
@@ -86,8 +88,9 @@ bool TftpClient::put(const QString &filename)
             // FOR THE INCOMING UNSIGNED SHORT VALUE BUT BIG ENDIAN FOR THE
             // INCOMING DATA PACKET
             unsigned short incomingMessageCounter;
-            *((char*)&incomingMessageCounter+1) = buffer[2];
-            *((char*)&incomingMessageCounter+0) = buffer[3];
+            char *const inPtr = reinterpret_cast<char*>(&incomingMessageCounter);
+            inPtr[1] = buffer[2];
+            inPtr[0] = buffer[3];
 
             // CHECK INCOMING MESSAGE ID NUMBER AND MAKE SURE IT MATCHES
             // WHAT WE ARE EXPECTING, OTHERWISE WE'VE LOST OR GAINED A PACKET
@@ -103,7 +106,7 @@ bool TftpClient::put(const QString &filename)
             // CHECK THE OPCODE FOR ANY ERROR CONDITIONS
             char opCode = buffer[1];
             if (opCode != 0x04) { /* ack packet should have code 4 and should be ack+1 the packet we just sent */
-                const QString msg = QString("Incoming packet returned invalid operation code (%1).").arg((int)opCode);
+                const QString msg = QString("Incoming packet returned invalid operation code (%1).").arg(static_cast<int>(opCode));
                 qCritical() << msg;
                 emit error(msg);
                 return false;
@@ -113,10 +116,10 @@ bool TftpClient::put(const QString &filename)
 
                 // SEND NEXT DATA PACKET TO HOST
                 QByteArray transmitByteArray;
-                transmitByteArray.append((char)0x00);
-                transmitByteArray.append((char)0x03); // send data opcode
-                transmitByteArray.append(*((char*)&outgoingPacketNumber+1));
-                transmitByteArray.append(*((char*)&outgoingPacketNumber));
+                transmitByteArray.append(static_cast<char>(0x00));
+                transmitByteArray.append(static_cast<char>(0x03)); // send data opcode
+                transmitByteArray.append(outPtr[1]);
+                transmitByteArray.append(outPtr[0]);
 
                 // APPEND DATA THAT WE WANT TO SEND
                 int numBytesAlreadySent = outgoingPacketNumber*MAX_PACKET_SIZE;
@@ -148,6 +151,7 @@ bool TftpClient::put(const QString &filename)
             return false;
         }
     }
+    qInfo() << "Uploaded" << ofile.fileName();
     return true;
 }
 
@@ -159,7 +163,7 @@ bool TftpClient::get(const QString &filename)
     }
 
     //open file for writing
-    QFile ifile(filename);
+    QFile ifile(_workingFolder + "/" + filename);
     if (!ifile.open(QIODevice::WriteOnly)) {
         qCritical() << "Cannot open file for writing" << filename;
         return false;
@@ -213,7 +217,7 @@ bool TftpClient::get(const QString &filename)
             char *buffer=incomingDatagram.data();
             char zeroByte=buffer[0];
             if (zeroByte != 0x00) {
-                const QString msg = QString("Incoming packet has invalid first byte (%1).").arg((int)zeroByte);
+                const QString msg = QString("Incoming packet has invalid first byte (%1).").arg(static_cast<int>(zeroByte));
                 qCritical() << msg;
                 emit error(msg);
                 return false;
@@ -223,8 +227,9 @@ bool TftpClient::get(const QString &filename)
             // FOR THE INCOMING UNSIGNED SHORT VALUE BUT BIG ENDIAN FOR THE
             // INCOMING DATA PACKET
             unsigned short incomingMessageCounter;
-            *((char*)&incomingMessageCounter+1)=buffer[2];
-            *((char*)&incomingMessageCounter+0)=buffer[3];
+            char *const inPtr = reinterpret_cast<char*>(&incomingMessageCounter);
+            inPtr[1] = buffer[2];
+            inPtr[0] = buffer[3];
 
             // CHECK INCOMING MESSAGE ID NUMBER AND MAKE SURE IT MATCHES
             // WHAT WE ARE EXPECTING, OTHERWISE WE'VE LOST OR GAINED A PACKET
@@ -253,17 +258,17 @@ bool TftpClient::get(const QString &filename)
             // CHECK THE OPCODE FOR ANY ERROR CONDITIONS
             char opCode=buffer[1];
             if (opCode != 0x03) { /* ack packet should have code 3 (data) and should be ack+1 the packet we just sent */
-                const QString msg = QString("Incoming packet returned invalid operation code (%1).").arg((int)opCode);
+                const QString msg = QString("Incoming packet returned invalid operation code (%1).").arg(static_cast<int>(opCode));
                 qCritical() << msg;
                 emit error(msg);
                 return false;
             } else {
                 // SEND PACKET ACKNOWLEDGEMENT BACK TO HOST REFLECTING THE INCOMING PACKET NUMBER
                 QByteArray ackByteArray;
-                ackByteArray.append((char)0x00);
-                ackByteArray.append((char)0x04);
-                ackByteArray.append(*((char*)&incomingMessageCounter+1));
-                ackByteArray.append(*((char*)&incomingMessageCounter));
+                ackByteArray.append(static_cast<char>(0x00));
+                ackByteArray.append(static_cast<char>(0x04));
+                ackByteArray.append(inPtr[1]);
+                ackByteArray.append(inPtr[0]);
 
                 // SEND THE PACKET AND MAKE SURE IT GETS SENT
                 if (_socket->writeDatagram(ackByteArray, hostAddress, _serverPort) != ackByteArray.length()) {
@@ -288,6 +293,7 @@ bool TftpClient::get(const QString &filename)
         qCritical() << "Cannot write received content to file" << len << requestedFile.size();
         return false;
     }
+    qInfo() << "Downloaded" << ifile.fileName();
     return true;
 }
 
