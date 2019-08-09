@@ -10,11 +10,30 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
 
 void TftpClient::startDownload(const QString &hosts, const QString &files)
 {
-    qDebug() << "Start download" << hosts << files;
-    setInProgress(true);
-    _serverAddress = hosts;
-    get(files);
-    setInProgress(false);
+    if (!parseFileList(files)) {
+        return;
+    }
+
+    //parse host list
+    if (QFile::exists(hosts)) {
+        qInfo() << "Got list of server IP addresses";
+        QFile ifile(hosts);
+        if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            const QString msg = tr("Cannot open ") + ifile.fileName();
+            qCritical() << msg;
+            emit error(tr("Error"), msg);
+            return;
+        }
+        QTextStream in(&ifile);
+        while (!in.atEnd()) {
+            const QString address = in.readLine().trimmed();
+            //TODO: handle range of IP addresses
+            downloadFileList(address);
+        }
+    } else {
+        qInfo() << "Got one server IP address";
+        downloadFileList(hosts.trimmed());
+    }
 }
 
 void TftpClient::stopDownload()
@@ -22,9 +41,9 @@ void TftpClient::stopDownload()
     setInProgress(false);
 }
 
-bool TftpClient::put(const QString &filename)
+bool TftpClient::put(const QString &serverAddress, const QString &filename)
 {
-    if (_serverAddress.isEmpty()) {
+    if (serverAddress.isEmpty()) {
         qCritical() << "Server address cannot be empty";
         return false;
     }
@@ -55,7 +74,7 @@ bool TftpClient::put(const QString &filename)
 
     // CREATE REQUEST PACKET AND SEND TO HOST
     // WAIT UNTIL MESSAGE HAS BEEN SENT, QUIT IF TIMEOUT IS REACHED
-    const QHostAddress hostAddress(_serverAddress);
+    const QHostAddress hostAddress(serverAddress);
     const QByteArray reqPacket = putFilePacket(filename);
     if (_socket->writeDatagram(reqPacket, hostAddress, _serverPort) != reqPacket.length()){
         const QString msg = "Cannot send packet to host " + _socket->errorString();
@@ -163,9 +182,9 @@ bool TftpClient::put(const QString &filename)
     return true;
 }
 
-bool TftpClient::get(const QString &filename)
+bool TftpClient::get(const QString &serverAddress, const QString &filename)
 {
-    if (_serverAddress.isEmpty()) {
+    if (serverAddress.isEmpty()) {
         const QString msg = tr("Server address cannot be empty");
         qCritical() << msg;
         emit error(tr("Error"), msg);
@@ -196,7 +215,7 @@ bool TftpClient::get(const QString &filename)
     }
 
     // MAKE A LOCAL COPY OF THE REMOTE HOST ADDRESS AND PORT NUMBER
-    const QHostAddress hostAddress(_serverAddress);
+    const QHostAddress hostAddress(serverAddress);
 
     // CLEAN OUT ANY INCOMING PACKETS
     while (_socket->hasPendingDatagrams()){
@@ -353,4 +372,38 @@ QByteArray TftpClient::putFilePacket(const QString &filename)
     byteArray.append(static_cast<char>(0x00));
 
     return(byteArray);
+}
+
+bool TftpClient::parseFileList(const QString &files)
+{
+    _files.clear();
+    if (!QFile::exists(files)) {
+        //assume that this is a single file
+        _files.append(files);
+        return true;
+    }
+    //got list of files
+    QFile ifile(files);
+    if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        const QString msg = tr("Cannot open ") + ifile.fileName();
+        qCritical() << msg;
+        emit error(tr("Error"), msg);
+        return false;
+    }
+    QTextStream in(&ifile);
+    while (!in.atEnd()) {
+        _files.append(in.readLine().trimmed());
+    }
+    return true;
+}
+
+void TftpClient::downloadFileList(const QString &address)
+{
+    setInProgress(true);
+    for (const auto &file: _files) {
+        if (get(address, file)) {
+            break;//stop once a file is downloaded
+        }
+    }
+    setInProgress(false);
 }
