@@ -12,7 +12,11 @@ find_package(Qt5 COMPONENTS Core Quick REQUIRED)
 
 file (GLOB SRC src/*.cpp)
 
-add_executable(${PROJECT_NAME} "${SRC}" "qml.qrc")
+if (WIN32)
+    add_executable(${PROJECT_NAME} WIN32 "${SRC}" "qml.qrc" "${CMAKE_SOURCE_DIR}/img/app.rc")
+else()
+    add_executable(${PROJECT_NAME} "${SRC}" "qml.qrc")
+endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Quick)
 
