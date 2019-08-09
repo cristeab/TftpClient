@@ -164,7 +164,10 @@ bool TftpClient::get(const QString &filename)
 
     //open file for writing
     QFile ifile(_workingFolder + "/" + filename);
-    if (!ifile.open(QIODevice::WriteOnly)) {
+    if (ifile.exists()) {
+        qWarning() << "File" << ifile.fileName() << "will be overwritten";
+    }
+    if (!ifile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         qCritical() << "Cannot open file for writing" << filename;
         return false;
     }
