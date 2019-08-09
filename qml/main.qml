@@ -1,5 +1,6 @@
 import QtQuick 2.13
 import QtQuick.Controls 2.12
+import QtQuick.Dialogs 1.3 as Old
 
 ApplicationWindow {
     id: mainWin
@@ -48,6 +49,33 @@ ApplicationWindow {
         fillMode: Image.PreserveAspectFit
     }
 
+    Old.FileDialog {
+        id: fileDialog
+        property var callback: null
+        function getServerIpAddresses(hosts) {
+            hostTextField.text = hosts
+        }
+        function getFiles(files) {
+            fileTextField.text = files
+        }
+        function getWorkingFolder(folder) {
+            workingFolderField.text = folder
+        }
+        visible: false
+        folder: shortcuts.home
+        selectExisting: true
+        selectFolder: false
+        selectMultiple : false
+        nameFilters: [ "All files (*)" ]
+        onAccepted: {
+            if (null !== fileDialog.callback) {
+                var url = fileDialog.fileUrl.toString()
+                fileDialog.callback(url.slice("file://".length))
+                fileDialog.callback = null
+            }
+        }
+    }
+
     Grid {
         id: grid
         anchors {
@@ -76,7 +104,11 @@ ApplicationWindow {
             text: "..."
             font.pointSize: appStyle.buttonFontSize
             onClicked: {
-                //TODO
+                fileDialog.title = qsTr("Please choose a file with server IP addresses")
+                fileDialog.selectExisting = true
+                fileDialog.selectFolder = false
+                fileDialog.callback = fileDialog.getServerIpAddresses
+                fileDialog.visible = true
             }
         }
         Label {
@@ -96,7 +128,11 @@ ApplicationWindow {
             text: "..."
             font.pointSize: appStyle.buttonFontSize
             onClicked: {
-                //TODO
+                fileDialog.title = qsTr("Please choose a file with filenames")
+                fileDialog.selectExisting = true
+                fileDialog.selectFolder = false
+                fileDialog.callback = fileDialog.getFiles
+                fileDialog.visible = true
             }
         }
         Label {
@@ -118,7 +154,11 @@ ApplicationWindow {
             text: "..."
             font.pointSize: appStyle.buttonFontSize
             onClicked: {
-                //TODO
+                fileDialog.title = qsTr("Please choose the working folder")
+                fileDialog.selectExisting = true
+                fileDialog.selectFolder = true
+                fileDialog.callback = fileDialog.getWorkingFolder
+                fileDialog.visible = true
             }
         }
     }
