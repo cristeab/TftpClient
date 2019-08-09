@@ -1,5 +1,6 @@
 #include "tftpclient.h"
 #include <QFile>
+#include <QDir>
 #include <QStandardPaths>
 
 TftpClient::TftpClient(QObject *parent) : QObject(parent)
@@ -10,6 +11,7 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
 
 void TftpClient::startDownload(const QString &hosts, const QString &files)
 {
+    _stats.clear();
     if (!parseFileList(files)) {
         return;
     }
@@ -34,6 +36,7 @@ void TftpClient::startDownload(const QString &hosts, const QString &files)
         qInfo() << "Got one server IP address";
         downloadFileList(hosts.trimmed());
     }
+    dumpStats();
 }
 
 void TftpClient::stopDownload()
@@ -49,14 +52,14 @@ bool TftpClient::put(const QString &serverAddress, const QString &filename)
     }
 
     // try to read file content
-    QFile ofile(filename);
-    if (!ofile.open(QIODevice::ReadOnly)) {
-        const QString msg = tr("Cannot open file for reading ") + filename;
+    QFile ifile(filename);
+    if (!ifile.open(QIODevice::ReadOnly)) {
+        const QString msg = tr("Cannot open file for reading ") + ifile.fileName();
         qCritical() << msg;
         emit error(tr("Error"), msg);
         return false;
     }
-    const QByteArray transmittingFile = ofile.readAll();
+    const QByteArray transmittingFile = ifile.readAll();
     if (transmittingFile.isEmpty()) {
         const QString msg = tr("Input file is empty");
         qCritical() << msg;
@@ -176,7 +179,7 @@ bool TftpClient::put(const QString &serverAddress, const QString &filename)
             return false;
         }
     }
-    const QString msg = tr("Uploaded ") + ofile.fileName();
+    const QString msg = tr("Uploaded ") + ifile.fileName();
     qInfo() << msg;
     emit info(msg);
     return true;
@@ -191,14 +194,18 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
         return false;
     }
 
+    //make sure that the destination folder exists
+    const QString filePath(_workingFolder + "/" + serverAddress);
+    QDir().mkpath(filePath);
+
     //open file for writing
-    QFile ifile(_workingFolder + "/" + filename);
-    if (ifile.exists()) {
-        const QString msg = tr("File ") + ifile.fileName() + tr(" will be overwritten");
+    QFile ofile(filePath + "/" + filename);
+    if (ofile.exists()) {
+        const QString msg = tr("File ") + ofile.fileName() + tr(" will be overwritten");
         qWarning() << msg;
         emit error(tr("Warning"), msg);
     }
-    if (!ifile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    if (!ofile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         const QString msg = tr("Cannot open file for writing ") + filename;
         qCritical() << msg;
         emit error(tr("Error"), msg);
@@ -207,7 +214,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
 
     // BIND OUR LOCAL SOCKET TO AN IP ADDRESS AND PORT
     if (!bindSocket()) {
-        ifile.remove();
+        ofile.remove();
         const QString msg = _socket->errorString();
         qCritical() << msg;
         emit error(tr("Error"), msg);
@@ -228,7 +235,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
     // WAIT UNTIL MESSAGE HAS BEEN SENT, QUIT IF TIMEOUT IS REACHED
     QByteArray reqPacket=getFilePacket(filename);
     if (_socket->writeDatagram(reqPacket, hostAddress, _serverPort) != reqPacket.length()) {
-        ifile.remove();
+        ofile.remove();
         const QString msg =  QString("Cannot send packet to host :( %1").arg(_socket->errorString());
         qCritical() << msg;
         emit error(tr("Error"), msg);
@@ -255,7 +262,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
             char *buffer=incomingDatagram.data();
             char zeroByte=buffer[0];
             if (zeroByte != 0x00) {
-                ifile.remove();
+                ofile.remove();
                 const QString msg = QString("Incoming packet has invalid first byte (%1).").arg(static_cast<int>(zeroByte));
                 qCritical() << msg;
                 emit error(tr("Error"), msg);
@@ -275,7 +282,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
             if (incomingMessageCounter == incomingPacketNumber){
                 incomingPacketNumber++;
             } else {
-                ifile.remove();
+                ofile.remove();
                 const QString msg = QString("Error on incoming packet number %1 vs expected %2").arg(incomingMessageCounter).arg(incomingPacketNumber);
                 qCritical() << msg;
                 emit error(tr("Error"), msg);
@@ -298,7 +305,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
             // CHECK THE OPCODE FOR ANY ERROR CONDITIONS
             char opCode=buffer[1];
             if (opCode != 0x03) { /* ack packet should have code 3 (data) and should be ack+1 the packet we just sent */
-                ifile.remove();
+                ofile.remove();
                 const QString msg = QString("Incoming packet returned invalid operation code (%1).").arg(static_cast<int>(opCode));
                 qCritical() << msg;
                 emit error(tr("Error"), msg);
@@ -313,7 +320,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
 
                 // SEND THE PACKET AND MAKE SURE IT GETS SENT
                 if (_socket->writeDatagram(ackByteArray, hostAddress, _serverPort) != ackByteArray.length()) {
-                    ifile.remove();
+                    ofile.remove();
                     const QString msg = QString("Cannot send ack packet to host :( %1").arg(_socket->errorString());
                     qCritical() << msg;
                     emit error(tr("Error"), msg);
@@ -324,22 +331,28 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
                 outgoingPacketNumber++;
             }
         } else {
-            ifile.remove();
+            ofile.remove();
             const QString msg = QString("No message received from host :( %1").arg(_socket->errorString());
             qCritical() << msg;
             emit error(tr("Error"), msg);
             return false;
         }
     }
-    qint64 len = ifile.write(requestedFile);
+    qint64 len = ofile.write(requestedFile);
     if (len != requestedFile.size()) {
-        ifile.remove();
+        ofile.remove();
         qCritical() << "Cannot write received content to file" << len << requestedFile.size();
         return false;
     }
-    const QString msg = tr("Downloaded ") + ifile.fileName();
+    const QString msg = tr("Downloaded ") + ofile.fileName();
     qInfo() << msg;
     emit info(msg);
+
+    Stats stats;
+    stats.address = serverAddress;
+    stats.filename = ofile.fileName();
+    _stats.push_back(stats);
+
     return true;
 }
 
@@ -406,4 +419,30 @@ void TftpClient::downloadFileList(const QString &address)
         }
     }
     setInProgress(false);
+}
+
+void TftpClient::dumpStats()
+{
+    if (_stats.isEmpty()) {
+        emit info(tr("No files have been downloaded"));
+        return;
+    }
+    QFile ofile(_workingFolder + "/stats.txt");
+    if (!ofile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        const QString msg = tr("Cannot open file for writing ") + ofile.fileName();
+        qCritical() << msg;
+        emit error(tr("Error"), msg);
+        return;
+    }
+    QTextStream stream(&ofile);
+    for (const auto &stat: _stats) {
+        stream << stat.address << ": " << stat.filename << endl;
+    }
+    QString msg;
+    if (0 < _stats.size()) {
+        msg = QString::number(_stats.size()) + tr(" files have been downloaded");
+    } else {
+        msg = tr("1 file has been downloaded");
+    }
+    emit info(msg);
 }
