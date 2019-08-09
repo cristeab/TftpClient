@@ -18,12 +18,18 @@
     private: \
         type _##name = defaultValue;
 
-#define QML_READABLE_PROPERTY(type, name, defaultValue) \
+#define QML_READABLE_PROPERTY(type, name, setter, defaultValue) \
     protected: \
         Q_PROPERTY(type name MEMBER _##name NOTIFY name##Changed) \
     Q_SIGNALS: \
         void name##Changed(); \
     private: \
+        void setter(const type &value) { \
+            if (value != _##name) { \
+                _##name = value; \
+                emit name##Changed(); \
+            } \
+        } \
         type _##name = defaultValue;
 
 #define QML_CONSTANT_PROPERTY(type, name) \

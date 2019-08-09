@@ -3,5 +3,8 @@
         <file>img/logo.png</file>
         <file>qml/main.qml</file>
         <file>qtquickcontrols2.conf</file>
+        <file>qml/MessageDialog.qml</file>
+        <file>qml/LabelToolTip.qml</file>
+        <file>qml/DesktopStyle.qml</file>
     </qresource>
 </RCC>

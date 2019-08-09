@@ -7,12 +7,13 @@ class TftpClient : public QObject
 {
     Q_OBJECT
     QML_WRITABLE_PROPERTY(QString, workingFolder, setWorkingFolder, "")
+    QML_READABLE_PROPERTY(bool, inProgress, setInProgress, false)
 public:
     explicit TftpClient(QObject *parent = nullptr);
     Q_INVOKABLE void startDownload(const QString &hosts, const QString &files);
     Q_INVOKABLE void stopDownload();
 signals:
-    void error(const QString &msg);
+    void error(const QString &title, const QString &msg);
 private:
     enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000 };
     bool put(const QString &filename);
