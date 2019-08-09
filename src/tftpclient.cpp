@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QDir>
 #include <QStandardPaths>
+#include <QUrl>
 #include <thread>
 
 TftpClient::TftpClient(QObject *parent) : QObject(parent)
@@ -17,7 +18,7 @@ void TftpClient::startDownload(const QString &hosts, const QString &files)
     updateInfo();
     _running = true;
 
-    std::thread th([&]() {
+    std::thread th([this, hosts, files]() {
         if (!parseFileList(files)) {
             return;
         }
@@ -53,6 +54,17 @@ void TftpClient::startDownload(const QString &hosts, const QString &files)
 void TftpClient::stopDownload()
 {
     _running = false;
+}
+
+QString TftpClient::toLocalFile(const QUrl &url)
+{
+    QString out;
+    if (url.isLocalFile()) {
+        out = QDir::toNativeSeparators(url.toLocalFile());
+    } else {
+        out = url.toString();
+    }
+    return out;
 }
 
 bool TftpClient::put(const QString &serverAddress, const QString &filename)

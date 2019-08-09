@@ -13,6 +13,7 @@ public:
     explicit TftpClient(QObject *parent = nullptr);
     Q_INVOKABLE void startDownload(const QString &hosts, const QString &files);
     Q_INVOKABLE void stopDownload();
+    Q_INVOKABLE QString toLocalFile(const QUrl &url);
 signals:
     void error(const QString &title, const QString &msg);
     void info(const QString &msg);

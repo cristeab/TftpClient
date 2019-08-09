@@ -60,8 +60,7 @@ ApplicationWindow {
         nameFilters: [ "All files (*)" ]
         onAccepted: {
             if (null !== fileDialog.callback) {
-                var url = fileDialog.fileUrl.toString()
-                fileDialog.callback(url.slice("file://".length))
+                fileDialog.callback(client.toLocalFile(fileDialog.fileUrl))
                 fileDialog.callback = null
             }
         }
