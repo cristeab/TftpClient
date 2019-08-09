@@ -5,13 +5,15 @@
 
 TftpClient::TftpClient(QObject *parent) : QObject(parent)
 {
-    setWorkingFolder(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
+    setWorkingFolder(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
     setObjectName("client");
+    _running = true;
 }
 
 void TftpClient::startDownload(const QString &hosts, const QString &files)
 {
     _stats.clear();
+    _running = true;
     if (!parseFileList(files)) {
         return;
     }
@@ -31,6 +33,10 @@ void TftpClient::startDownload(const QString &hosts, const QString &files)
             const QString address = in.readLine().trimmed();
             //TODO: handle range of IP addresses
             downloadFileList(address);
+            if (!_running) {
+                qWarning() << "Stopped by user";
+                break;
+            }
         }
     } else {
         qInfo() << "Got one server IP address";
@@ -41,7 +47,7 @@ void TftpClient::startDownload(const QString &hosts, const QString &files)
 
 void TftpClient::stopDownload()
 {
-    setInProgress(false);
+    _running = false;
 }
 
 bool TftpClient::put(const QString &serverAddress, const QString &filename)
@@ -416,6 +422,10 @@ void TftpClient::downloadFileList(const QString &address)
     for (const auto &file: _files) {
         if (get(address, file)) {
             break;//stop once a file is downloaded
+        }
+        if (!_running) {
+            qWarning() << "Stopped by user";
+            break;
         }
     }
     setInProgress(false);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QUdpSocket>
+#include <atomic>
 #include "qmlhelpers.h"
 
 class TftpClient : public QObject
@@ -33,4 +34,5 @@ private:
         QString filename;
     };
     QVector<Stats> _stats;
+    std::atomic<bool> _running;
 };
