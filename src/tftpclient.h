@@ -14,6 +14,7 @@ public:
     Q_INVOKABLE void stopDownload();
 signals:
     void error(const QString &title, const QString &msg);
+    void info(const QString &msg);
 private:
     enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000 };
     bool put(const QString &filename);

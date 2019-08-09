@@ -24,9 +24,14 @@ ApplicationWindow {
     Connections {
         target: client
         onError: {
-            msgDlgProps.title = title
-            msgDlgProps.text = msg
+            if (!client.inProgress) {
+                msgDlgProps.title = title
+                msgDlgProps.text = msg
+            } else {
+                mainWinFooter.text = msg
+            }
         }
+        onInfo: mainWinFooter.text = msg
     }
 
     Image {
@@ -159,5 +164,12 @@ ApplicationWindow {
     Loader {
         active: "" !== msgDlgProps.text
         source: "qrc:/qml/MessageDialog.qml"
+    }
+
+    footer: Label {
+        id: mainWinFooter
+        leftPadding: 10
+        rightPadding: 10
+        bottomPadding: 5
     }
 }

@@ -157,7 +157,9 @@ bool TftpClient::put(const QString &filename)
             return false;
         }
     }
-    qInfo() << "Uploaded" << ofile.fileName();
+    const QString msg = tr("Uploaded ") + ofile.fileName();
+    qInfo() << msg;
+    emit info(msg);
     return true;
 }
 
@@ -316,7 +318,9 @@ bool TftpClient::get(const QString &filename)
         qCritical() << "Cannot write received content to file" << len << requestedFile.size();
         return false;
     }
-    qInfo() << "Downloaded" << ifile.fileName();
+    const QString msg = tr("Downloaded ") + ifile.fileName();
+    qInfo() << msg;
+    emit info(msg);
     return true;
 }
 
