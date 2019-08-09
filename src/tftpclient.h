@@ -24,6 +24,7 @@ private:
     bool put(const QString &serverAddress, const QString &filename);
     bool get(const QString &serverAddress, const QString &filename);
     bool bindSocket();
+    void updateInfo();
     QByteArray getFilePacket(const QString &filename);
     QByteArray putFilePacket(const QString &filename);
     QScopedPointer<QUdpSocket> _socket;

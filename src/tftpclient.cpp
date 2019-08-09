@@ -14,6 +14,7 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
 void TftpClient::startDownload(const QString &hosts, const QString &files)
 {
     _stats.clear();
+    updateInfo();
     _running = true;
 
     std::thread th([&]() {
@@ -357,6 +358,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
     stats.address = serverAddress;
     stats.filename = ofile.fileName();
     _stats.push_back(stats);
+    updateInfo();
 
     return true;
 }
@@ -451,6 +453,11 @@ void TftpClient::dumpStats()
     for (const auto &stat: _stats) {
         stream << stat.address << ": " << stat.filename << endl;
     }
+    updateInfo();
+}
+
+void TftpClient::updateInfo()
+{
     QString msg;
     if (1 < _stats.size()) {
         msg = QString::number(_stats.size()) + tr(" files have been downloaded");

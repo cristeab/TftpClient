@@ -24,14 +24,6 @@ ApplicationWindow {
     }
     Connections {
         target: client
-        onError: {
-            if (!client.inProgress) {
-                msgDlgProps.title = title
-                msgDlgProps.text = msg
-            } else {
-                mainWinFooter.text = msg
-            }
-        }
         onInfo: mainWinFooter.text = msg
     }
 
