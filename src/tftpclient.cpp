@@ -452,7 +452,7 @@ void TftpClient::dumpStats()
         stream << stat.address << ": " << stat.filename << endl;
     }
     QString msg;
-    if (0 < _stats.size()) {
+    if (1 < _stats.size()) {
         msg = QString::number(_stats.size()) + tr(" files have been downloaded");
     } else {
         msg = tr("1 file has been downloaded");
