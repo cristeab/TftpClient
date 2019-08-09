@@ -1,10 +1,12 @@
 #pragma once
 
 #include <QUdpSocket>
+#include "qmlhelpers.h"
 
 class TftpClient : public QObject
 {
     Q_OBJECT
+    QML_WRITABLE_PROPERTY(QString, workingFolder, setWorkingFolder, "")
 public:
     explicit TftpClient(QObject *parent = nullptr);
     Q_INVOKABLE void startDownload(const QString &hosts, const QString &files);

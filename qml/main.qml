@@ -67,6 +67,23 @@ ApplicationWindow {
                 //TODO
             }
         }
+        Label {
+            height: workingFolderField.height
+            verticalAlignment: Text.AlignVCenter
+            text: qsTr("Working folder")
+        }
+        TextField {
+            id: workingFolderField
+            placeholderText: qsTr("Folder where all downloaded files are created")
+            width: hostTextField.width
+        }
+        Button {
+            display: AbstractButton.TextOnly
+            text: "..."
+            onClicked: {
+                //TODO
+            }
+        }
     }
     Row {
         anchors {
