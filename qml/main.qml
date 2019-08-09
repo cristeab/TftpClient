@@ -62,7 +62,6 @@ ApplicationWindow {
             workingFolderField.text = folder
         }
         visible: false
-        folder: shortcuts.home
         selectExisting: true
         selectFolder: false
         selectMultiple : false
@@ -195,9 +194,7 @@ ApplicationWindow {
             display: AbstractButton.TextOnly
             text: qsTr("Cancel")
             font.pointSize: appStyle.buttonFontSize
-            onClicked: {
-                client.stopDownload()
-            }
+            onClicked: client.stopDownload()
         }
     }
 
