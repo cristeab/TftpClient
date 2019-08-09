@@ -1,5 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include "tftpclient.h"
 
 int main(int argc, char *argv[])
 {
@@ -8,6 +10,12 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
+    QQmlContext *context = engine.rootContext();
+    if (nullptr != context) {
+        TftpClient *client = new TftpClient();
+        context->setContextProperty(client->objectName(), client);
+    }
+
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {

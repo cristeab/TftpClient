@@ -79,14 +79,14 @@ ApplicationWindow {
             display: AbstractButton.TextOnly
             text: qsTr("Start")
             onClicked: {
-                //TODO
+                client.startDownload(hostTextField.text, fileTextField.text)
             }
         }
         Button {
             display: AbstractButton.TextOnly
             text: qsTr("Cancel")
             onClicked: {
-                //TODO
+                client.stopDownload()
             }
         }
     }
