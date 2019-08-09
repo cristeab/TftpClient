@@ -174,6 +174,7 @@ bool TftpClient::get(const QString &filename)
 
     // BIND OUR LOCAL SOCKET TO AN IP ADDRESS AND PORT
     if (!bindSocket()) {
+        ifile.remove();
         const QString msg = _socket->errorString();
         qCritical() << msg;
         emit error(msg);
@@ -194,6 +195,7 @@ bool TftpClient::get(const QString &filename)
     // WAIT UNTIL MESSAGE HAS BEEN SENT, QUIT IF TIMEOUT IS REACHED
     QByteArray reqPacket=getFilePacket(filename);
     if (_socket->writeDatagram(reqPacket, hostAddress, _serverPort) != reqPacket.length()) {
+        ifile.remove();
         const QString msg =  QString("Cannot send packet to host :( %1").arg(_socket->errorString());
         qCritical() << msg;
         emit error(msg);
@@ -220,6 +222,7 @@ bool TftpClient::get(const QString &filename)
             char *buffer=incomingDatagram.data();
             char zeroByte=buffer[0];
             if (zeroByte != 0x00) {
+                ifile.remove();
                 const QString msg = QString("Incoming packet has invalid first byte (%1).").arg(static_cast<int>(zeroByte));
                 qCritical() << msg;
                 emit error(msg);
@@ -239,6 +242,7 @@ bool TftpClient::get(const QString &filename)
             if (incomingMessageCounter == incomingPacketNumber){
                 incomingPacketNumber++;
             } else {
+                ifile.remove();
                 const QString msg = QString("Error on incoming packet number %1 vs expected %2").arg(incomingMessageCounter).arg(incomingPacketNumber);
                 qCritical() << msg;
                 emit error(msg);
@@ -261,6 +265,7 @@ bool TftpClient::get(const QString &filename)
             // CHECK THE OPCODE FOR ANY ERROR CONDITIONS
             char opCode=buffer[1];
             if (opCode != 0x03) { /* ack packet should have code 3 (data) and should be ack+1 the packet we just sent */
+                ifile.remove();
                 const QString msg = QString("Incoming packet returned invalid operation code (%1).").arg(static_cast<int>(opCode));
                 qCritical() << msg;
                 emit error(msg);
@@ -275,6 +280,7 @@ bool TftpClient::get(const QString &filename)
 
                 // SEND THE PACKET AND MAKE SURE IT GETS SENT
                 if (_socket->writeDatagram(ackByteArray, hostAddress, _serverPort) != ackByteArray.length()) {
+                    ifile.remove();
                     const QString msg = QString("Cannot send ack packet to host :( %1").arg(_socket->errorString());
                     qCritical() << msg;
                     emit error(msg);
@@ -285,6 +291,7 @@ bool TftpClient::get(const QString &filename)
                 outgoingPacketNumber++;
             }
         } else {
+            ifile.remove();
             const QString msg = QString("No message received from host :( %1").arg(_socket->errorString());
             qCritical() << msg;
             emit error(msg);
@@ -293,6 +300,7 @@ bool TftpClient::get(const QString &filename)
     }
     qint64 len = ifile.write(requestedFile);
     if (len != requestedFile.size()) {
+        ifile.remove();
         qCritical() << "Cannot write received content to file" << len << requestedFile.size();
         return false;
     }
