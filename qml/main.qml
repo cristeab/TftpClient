@@ -86,6 +86,7 @@ ApplicationWindow {
         id: progressBar
         anchors {
             top: addrIndex.bottom
+            topMargin: 2
             horizontalCenter: parent.horizontalCenter
         }
         visible: true
@@ -94,12 +95,23 @@ ApplicationWindow {
         to: client.addrCount
         value: client.addrIndex
     }
+    Label {
+        id: currentAddr
+        visible: ("" !== client.currentAddress) && progressBar.visible
+        anchors {
+            top: progressBar.bottom
+            topMargin: 2
+            horizontalCenter: parent.horizontalCenter
+        }
+        font: addrIndex.font
+        text: qsTr("Downloading from ") + client.currentAddress + " ..."
+    }
 
     Grid {
         id: grid
         enabled: startBtn.enabled
         anchors {
-            top: progressBar.bottom
+            top: currentAddr.bottom
             topMargin: 20
             horizontalCenter: parent.horizontalCenter
         }

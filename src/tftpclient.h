@@ -14,6 +14,7 @@ class TftpClient : public QObject
     Q_PROPERTY(int fileCount READ fileCount NOTIFY fileCountChanged)
     QML_READABLE_PROPERTY(int, addrCount, setAddrCount, 0)
     QML_READABLE_PROPERTY(int, addrIndex, setAddrIndex, 0)
+    QML_READABLE_PROPERTY(QString, currentAddress, setCurrentAddress, "")
 public:
     explicit TftpClient(QObject *parent = nullptr);
     Q_INVOKABLE void startDownload();

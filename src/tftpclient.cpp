@@ -456,7 +456,7 @@ bool TftpClient::parseFileList()
 
 void TftpClient::downloadFileList(const QString &address)
 {
-    qDebug() << "Download from" << address;
+    setCurrentAddress(address);
     setAddrIndex(_addrIndex + 1);
     for (const auto &file: _filesList) {
         if (get(address, file)) {
