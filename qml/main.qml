@@ -31,7 +31,7 @@ ApplicationWindow {
         id: logo
         anchors {
             top: parent.top
-            topMargin: 30
+            topMargin: 20
             horizontalCenter: parent.horizontalCenter
         }
         height: 100
@@ -80,7 +80,7 @@ ApplicationWindow {
         }
         visible: progressBar.visible
         font.pointSize: appStyle.textFontSize - 2
-        text: client.addrIndex
+        text: qsTr("Address index ") + client.addrIndex
     }
     ProgressBar {
         id: progressBar
@@ -106,12 +106,25 @@ ApplicationWindow {
         font: addrIndex.font
         text: qsTr("Downloading from ") + client.currentAddress + " ..."
     }
+    ProgressBar {
+        id: fileProgressBar
+        anchors {
+            top: currentAddr.bottom
+            topMargin: 2
+            horizontalCenter: parent.horizontalCenter
+        }
+        visible: true
+        width: grid.width
+        from: 0
+        to: client.fileCount
+        value: client.fileIndex
+    }
 
     Grid {
         id: grid
         enabled: startBtn.enabled
         anchors {
-            top: currentAddr.bottom
+            top: fileProgressBar.bottom
             topMargin: 20
             horizontalCenter: parent.horizontalCenter
         }

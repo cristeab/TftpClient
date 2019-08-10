@@ -458,7 +458,9 @@ void TftpClient::downloadFileList(const QString &address)
 {
     setCurrentAddress(address);
     setAddrIndex(_addrIndex + 1);
+    setFileIndex(0);
     for (const auto &file: _filesList) {
+        setFileIndex(_fileIndex + 1);
         if (get(address, file)) {
             break;//stop once a file is downloaded
         }
