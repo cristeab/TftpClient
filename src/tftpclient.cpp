@@ -12,54 +12,20 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
     setRunning(false);
 }
 
-void TftpClient::startDownload(const QString &hosts, const QString &files)
+void TftpClient::startDownload()
 {
     _stats.clear();
     updateInfo();
     setRunning(true);
 
-    std::thread th([this, hosts, files]() {
-        if (!parseFileList(files)) {
+    std::thread th([this]() {
+        if (!parseFileList(_files)) {
             return;
         }
         //parse host list
-        if (QFile::exists(hosts)) {
+        if (QFile::exists(_hosts)) {
             qInfo() << "Got list of server IP addresses";
-            QFile ifile(hosts);
-            if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                const QString msg = tr("Cannot open ") + ifile.fileName();
-                qCritical() << msg;
-                emit error(tr("Error"), msg);
-                return;
-            }
-            _addrCount = 0;
-            QHostAddress hostAddr;
-            QTextStream in(&ifile);
-            while (!in.atEnd()) {
-                const QString line = in.readLine().trimmed();
-                hostAddr.setAddress(line);
-                if (QAbstractSocket::IPv4Protocol == hostAddr.protocol()) {
-                    _singleAddresses.append(line);
-                    ++_addrCount;
-                } else {
-                    const auto tok = line.split('-');
-                    if (2 == tok.size()) {
-                        //range of IP addresses
-                        hostAddr.setAddress(tok.at(0).trimmed());
-                        QHostAddress hostAddrLast(tok.at(1).trimmed());
-                        if ((QAbstractSocket::IPv4Protocol == hostAddr.protocol()) &&
-                                (QAbstractSocket::IPv4Protocol == hostAddrLast.protocol())) {
-                            const quint32 first = hostAddr.toIPv4Address();
-                            const quint32 last = hostAddrLast.toIPv4Address();
-                            if (first <= last) {
-                                _pairAddresses.append(QPair<quint32, quint32>(first, last));
-                                _addrCount += (last - first + 1);
-                            }
-                        }
-                    }
-                }
-            }
-            emit addrCountChanged();
+            parseAddressList(_hosts);
             qInfo() << "Found" << _addrCount << "addresses";
 
             bool stopped = false;
@@ -72,6 +38,7 @@ void TftpClient::startDownload(const QString &hosts, const QString &files)
                     break;
                 }
             }
+            QHostAddress hostAddr;
             if (!stopped) {
                 for (const auto &pairIp: _pairAddresses) {
                     for (quint32 ip = pairIp.first; ip <= pairIp.second; ++ip) {
@@ -90,7 +57,7 @@ void TftpClient::startDownload(const QString &hosts, const QString &files)
             }
         } else {
             qInfo() << "Got one server IP address";
-            downloadFileList(hosts.trimmed());
+            downloadFileList(_hosts.trimmed());
         }
         dumpStats();
     });
@@ -452,12 +419,52 @@ QByteArray TftpClient::putFilePacket(const QString &filename)
     return(byteArray);
 }
 
+bool TftpClient::parseAddressList(const QString &hosts)
+{
+    setAddrCount(0);
+    QFile ifile(hosts);
+    if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        const QString msg = tr("Cannot open ") + ifile.fileName();
+        qCritical() << msg;
+        emit error(tr("Error"), msg);
+        return false;
+    }
+    QHostAddress hostAddr;
+    QTextStream in(&ifile);
+    while (!in.atEnd()) {
+        const QString line = in.readLine().trimmed();
+        hostAddr.setAddress(line);
+        if (QAbstractSocket::IPv4Protocol == hostAddr.protocol()) {
+            _singleAddresses.append(line);
+            ++_addrCount;
+        } else {
+            const auto tok = line.split('-');
+            if (2 == tok.size()) {
+                //range of IP addresses
+                hostAddr.setAddress(tok.at(0).trimmed());
+                QHostAddress hostAddrLast(tok.at(1).trimmed());
+                if ((QAbstractSocket::IPv4Protocol == hostAddr.protocol()) &&
+                        (QAbstractSocket::IPv4Protocol == hostAddrLast.protocol())) {
+                    const quint32 first = hostAddr.toIPv4Address();
+                    const quint32 last = hostAddrLast.toIPv4Address();
+                    if (first <= last) {
+                        _pairAddresses.append(QPair<quint32, quint32>(first, last));
+                        _addrCount += (last - first + 1);
+                    }
+                }
+            }
+        }
+    }
+    emit addrCountChanged();
+    return true;
+}
+
 bool TftpClient::parseFileList(const QString &files)
 {
-    _files.clear();
+    _filesList.clear();
     if (!QFile::exists(files)) {
         //assume that this is a single file
-        _files.append(files);
+        _filesList.append(files);
         return true;
     }
     //got list of files
@@ -470,7 +477,7 @@ bool TftpClient::parseFileList(const QString &files)
     }
     QTextStream in(&ifile);
     while (!in.atEnd()) {
-        _files.append(in.readLine().trimmed());
+        _filesList.append(in.readLine().trimmed());
         if (!_running) {
             qWarning() << "Stopped by user";
             return false;

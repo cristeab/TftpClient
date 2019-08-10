@@ -102,6 +102,8 @@ ApplicationWindow {
             placeholderText: qsTr("Remote server IP address(es)")
             width: 0.4*mainWin.width
             font.pointSize: appStyle.textFontSize
+            text: client.hosts
+            onEditingFinished: client.hosts = text
         }
         Button {
             display: AbstractButton.TextOnly
@@ -126,6 +128,8 @@ ApplicationWindow {
             placeholderText: qsTr("Remote filename(s)")
             width: hostTextField.width
             font.pointSize: appStyle.textFontSize
+            text: client.files
+            onEditingFinished: client.files = text
         }
         Button {
             display: AbstractButton.TextOnly
@@ -179,11 +183,11 @@ ApplicationWindow {
             text: qsTr("Start")
             font.pointSize: appStyle.buttonFontSize
             onClicked: {
-                if ("" === hostTextField.text) {
+                if ("" === client.hosts) {
                     msgDlgProps.show(qsTr("Error"), qsTr("Hosts field cannot be empty"))
                     return
                 }
-                if ("" === fileTextField.text) {
+                if ("" === client.files) {
                     msgDlgProps.show(qsTr("Error"), qsTr("Files field cannot be empty"))
                     return
                 }
