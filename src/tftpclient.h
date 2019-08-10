@@ -8,15 +8,20 @@ class TftpClient : public QObject
 {
     Q_OBJECT
     QML_WRITABLE_PROPERTY(QString, workingFolder, setWorkingFolder, "")
-    QML_READABLE_PROPERTY(bool, inProgress, setInProgress, false)
+    Q_PROPERTY(bool running READ running NOTIFY runningChanged)
+    QML_READABLE_PROPERTY(int, addrCount, setAddrCount, 0)
+    QML_READABLE_PROPERTY(int, addrIndex, setAddrIndex, 0)
 public:
     explicit TftpClient(QObject *parent = nullptr);
     Q_INVOKABLE void startDownload(const QString &hosts, const QString &files);
     Q_INVOKABLE void stopDownload();
     Q_INVOKABLE QString toLocalFile(const QUrl &url);
+    bool running() const { return _running; }
+    void setRunning(bool val) { _running = val; }
 signals:
     void error(const QString &title, const QString &msg);
     void info(const QString &msg);
+    void runningChanged();
 private:
     enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000 };
     bool parseFileList(const QString &files);
@@ -37,4 +42,6 @@ private:
     };
     QVector<Stats> _stats;
     std::atomic<bool> _running;
+    QVector<QString> _singleAddresses;
+    QVector<QPair<quint32, quint32> > _pairAddresses;
 };

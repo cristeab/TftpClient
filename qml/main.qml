@@ -66,10 +66,24 @@ ApplicationWindow {
         }
     }
 
+    ProgressBar {
+        id: progressBar
+        visible: client.running
+        anchors {
+            top: logo.bottom
+            topMargin: 20
+            horizontalCenter: parent.horizontalCenter
+        }
+        width: grid.width
+        from: 0
+        to: client.addrCount
+        value: client.addrIndex
+    }
+
     Grid {
         id: grid
         anchors {
-            top: logo.bottom
+            top: progressBar.bottom
             topMargin: 20
             horizontalCenter: parent.horizontalCenter
         }
@@ -160,7 +174,7 @@ ApplicationWindow {
         }
         spacing: 10
         Button {
-            enabled: !client.inProgress
+            enabled: !client.running
             display: AbstractButton.TextOnly
             text: qsTr("Start")
             font.pointSize: appStyle.buttonFontSize
@@ -181,7 +195,7 @@ ApplicationWindow {
             }
         }
         Button {
-            enabled: client.inProgress
+            enabled: client.running
             display: AbstractButton.TextOnly
             text: qsTr("Cancel")
             font.pointSize: appStyle.buttonFontSize
