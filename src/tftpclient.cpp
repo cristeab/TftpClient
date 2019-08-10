@@ -37,11 +37,10 @@ void TftpClient::startDownload()
                     break;
                 }
             }
-            QHostAddress hostAddr;
             if (!stopped) {
                 for (const auto &pairIp: _pairAddresses) {
-                    for (quint32 ip = pairIp.first; ip <= pairIp.second; ++ip) {
-                        hostAddr.setAddress(ip);
+                    for (quint32 ipNum = pairIp.first; ipNum <= pairIp.second; ++ipNum) {
+                        QHostAddress hostAddr(ipNum);
                         downloadFileList(hostAddr.toString());
                         if (!_running) {
                             qWarning() << "Stopped by user";
@@ -218,6 +217,11 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
         qCritical() << _lastError;
         return false;
     }
+    if (filename.isEmpty()) {
+        _lastError = tr("Filename cannot be empty");
+        qCritical() << _lastError;
+        return false;
+    }
 
     // BIND OUR LOCAL SOCKET TO AN IP ADDRESS AND PORT
     if (!bindSocket()) {
@@ -359,10 +363,7 @@ bool TftpClient::get(const QString &serverAddress, const QString &filename)
     qInfo() << msg;
     emit info(msg);
 
-    Stats stats;
-    stats.address = serverAddress;
-    stats.filename = ofile.fileName();
-    _stats.push_back(stats);
+    _stats[serverAddress] = ofile.fileName();
     updateInfo();
 
     return true;
@@ -467,6 +468,7 @@ bool TftpClient::parseFileList()
 
 void TftpClient::downloadFileList(const QString &address)
 {
+    qDebug() << "Download from" << address;
     setAddrIndex(_addrIndex + 1);
     for (const auto &file: _filesList) {
         if (get(address, file)) {
@@ -493,8 +495,8 @@ void TftpClient::dumpStats()
         return;
     }
     QTextStream stream(&ofile);
-    for (const auto &stat: _stats) {
-        stream << stat.address << ": " << stat.filename << endl;
+    for (const auto &addr: _stats.keys()) {
+        stream << addr << ": " << _stats[addr] << endl;
     }
     updateInfo();
 }

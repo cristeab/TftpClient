@@ -47,11 +47,7 @@ private:
     QScopedPointer<QUdpSocket> _socket;
     uint16_t _serverPort = DEFAULT_PORT;
     QStringList _filesList;
-    struct Stats {
-        QString address;
-        QString filename;
-    };
-    QVector<Stats> _stats;
+    QMap<QString, QString> _stats;//address is the key
     std::atomic<bool> _running;
     QVector<QString> _singleAddresses;
     QVector<QPair<quint32, quint32> > _pairAddresses;

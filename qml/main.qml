@@ -88,7 +88,7 @@ ApplicationWindow {
             top: addrIndex.bottom
             horizontalCenter: parent.horizontalCenter
         }
-        visible: client.running
+        visible: true
         width: grid.width
         from: 0
         to: client.addrCount
