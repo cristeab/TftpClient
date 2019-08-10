@@ -82,6 +82,25 @@ ApplicationWindow {
         font.pointSize: appStyle.textFontSize - 2
         text: qsTr("Address index ") + client.addrIndex
     }
+    Label {
+        anchors {
+            left: progressBar.left
+            verticalCenter: addrIndex.verticalCenter
+        }
+        font: addrIndex.font
+        text: progressBar.from
+        horizontalAlignment: Text.AlignLeft
+    }
+    Label {
+        anchors {
+            right: progressBar.right
+            verticalCenter: addrIndex.verticalCenter
+        }
+        font: addrIndex.font
+        text: progressBar.to
+        horizontalAlignment: Text.AlignRight
+    }
+
     ProgressBar {
         id: progressBar
         anchors {
@@ -105,6 +124,24 @@ ApplicationWindow {
         }
         font: addrIndex.font
         text: qsTr("Downloading from ") + client.currentAddress + " ..."
+    }
+    Label {
+        anchors {
+            left: fileProgressBar.left
+            verticalCenter: currentAddr.verticalCenter
+        }
+        font: addrIndex.font
+        text: fileProgressBar.from
+        horizontalAlignment: Text.AlignLeft
+    }
+    Label {
+        anchors {
+            right: fileProgressBar.right
+            verticalCenter: currentAddr.verticalCenter
+        }
+        font: addrIndex.font
+        text: fileProgressBar.to
+        horizontalAlignment: Text.AlignRight
     }
     ProgressBar {
         id: fileProgressBar
@@ -260,21 +297,9 @@ ApplicationWindow {
         source: "qrc:/qml/MessageDialog.qml"
     }
 
-    footer: Row {
-        id: footerRow
-        spacing: 10
-        Label {
-            id: mainWinFooter
-            leftPadding: 5
-            bottomPadding: 5
-            width: parent.width - counters.width - counters.rightPadding - footerRow.spacing
-        }
-        Label {
-            id: counters
-            rightPadding: 5
-            bottomPadding: 5
-            text: client.addrCount + qsTr(" host(s) and ") + client.fileCount + qsTr(" file(s)")
-            horizontalAlignment: Text.AlignRight
-        }
+    footer: Label {
+        id: mainWinFooter
+        leftPadding: 5
+        bottomPadding: 5
     }
 }
