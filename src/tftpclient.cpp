@@ -19,43 +19,31 @@ void TftpClient::startDownload()
     setRunning(true);
 
     std::thread th([this]() {
-        if (!parseFileList()) {
-            return;
-        }
-        //parse host list
-        if (QFile::exists(_hosts)) {
-            qInfo() << "Got list of server IP addresses";
-            parseAddressList();
-
-            bool stopped = false;
-            setAddrIndex(0);
-            for (const auto &ip: _singleAddresses) {
-                downloadFileList(ip);
-                if (!_running) {
-                    qWarning() << "Stopped by user";
-                    stopped = true;
-                    break;
-                }
+        bool stopped = false;
+        setAddrIndex(0);
+        for (const auto &ip: _singleAddresses) {
+            downloadFileList(ip);
+            if (!_running) {
+                qWarning() << "Stopped by user";
+                stopped = true;
+                break;
             }
-            if (!stopped) {
-                for (const auto &pairIp: _pairAddresses) {
-                    for (quint32 ipNum = pairIp.first; ipNum <= pairIp.second; ++ipNum) {
-                        QHostAddress hostAddr(ipNum);
-                        downloadFileList(hostAddr.toString());
-                        if (!_running) {
-                            qWarning() << "Stopped by user";
-                            stopped = true;
-                            break;
-                        }
-                    }
-                    if (stopped) {
+        }
+        if (!stopped) {
+            for (const auto &pairIp: _pairAddresses) {
+                for (quint32 ipNum = pairIp.first; ipNum <= pairIp.second; ++ipNum) {
+                    QHostAddress hostAddr(ipNum);
+                    downloadFileList(hostAddr.toString());
+                    if (!_running) {
+                        qWarning() << "Stopped by user";
+                        stopped = true;
                         break;
                     }
                 }
+                if (stopped) {
+                    break;
+                }
             }
-        } else {
-            qInfo() << "Got one server IP address";
-            downloadFileList(_hosts.trimmed());
         }
         dumpStats();
     });
@@ -445,7 +433,7 @@ bool TftpClient::parseFileList()
     _filesList.clear();
     emit fileCountChanged();
     if (!QFile::exists(_files)) {
-        //assume that this is a single file
+        //assume that this is the filename to be downloaded
         _filesList.append(_files);
         emit fileCountChanged();
         return true;
