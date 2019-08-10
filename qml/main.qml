@@ -81,24 +81,25 @@ ApplicationWindow {
         visible: progressBar.visible
         font.pointSize: appStyle.textFontSize - 2
         text: qsTr("Address index ") + client.addrIndex
+        horizontalAlignment: Text.AlignHCenter
     }
     Label {
         anchors {
-            left: progressBar.left
+            horizontalCenter: progressBar.left
             verticalCenter: addrIndex.verticalCenter
         }
         font: addrIndex.font
         text: progressBar.from
-        horizontalAlignment: Text.AlignLeft
+        horizontalAlignment: Text.AlignHCenter
     }
     Label {
         anchors {
-            right: progressBar.right
+            horizontalCenter: progressBar.right
             verticalCenter: addrIndex.verticalCenter
         }
         font: addrIndex.font
         text: progressBar.to
-        horizontalAlignment: Text.AlignRight
+        horizontalAlignment: Text.AlignHCenter
     }
 
     ProgressBar {
@@ -124,24 +125,25 @@ ApplicationWindow {
         }
         font: addrIndex.font
         text: qsTr("Downloading from ") + client.currentAddress + " ..."
+        horizontalAlignment: Text.AlignHCenter
     }
     Label {
         anchors {
-            left: fileProgressBar.left
+            horizontalCenter: fileProgressBar.left
             verticalCenter: currentAddr.verticalCenter
         }
         font: addrIndex.font
         text: fileProgressBar.from
-        horizontalAlignment: Text.AlignLeft
+        horizontalAlignment: Text.AlignHCenter
     }
     Label {
         anchors {
-            right: fileProgressBar.right
+            horizontalCenter: fileProgressBar.right
             verticalCenter: currentAddr.verticalCenter
         }
         font: addrIndex.font
         text: fileProgressBar.to
-        horizontalAlignment: Text.AlignRight
+        horizontalAlignment: Text.AlignHCenter
     }
     ProgressBar {
         id: fileProgressBar
