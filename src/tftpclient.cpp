@@ -524,8 +524,10 @@ void TftpClient::updateInfo()
     QString msg;
     if (1 < _stats.size()) {
         msg = QString::number(_stats.size()) + tr(" files have been downloaded");
-    } else {
+    } else if (1 == _stats.size()) {
         msg = tr("1 file has been downloaded");
+    } else {
+        msg = tr("No files have been downloaded");
     }
     emit info(msg);
 }
