@@ -26,7 +26,6 @@ void TftpClient::startDownload()
         if (QFile::exists(_hosts)) {
             qInfo() << "Got list of server IP addresses";
             parseAddressList();
-            qInfo() << "Found" << _addrCount << "addresses";
 
             bool stopped = false;
             setAddrIndex(0);
