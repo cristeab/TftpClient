@@ -55,4 +55,5 @@ private:
     std::atomic<bool> _running;
     QVector<QString> _singleAddresses;
     QVector<QPair<quint32, quint32> > _pairAddresses;
+    QString _lastError;
 };
