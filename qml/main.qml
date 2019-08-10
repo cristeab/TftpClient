@@ -46,12 +46,17 @@ ApplicationWindow {
         property var callback: null
         function getServerIpAddresses(hosts) {
             hostTextField.text = hosts
+            client.hosts = hosts
+            client.parseAddressList()
         }
         function getFiles(files) {
             fileTextField.text = files
+            client.files = files
+            client.parseFileList()
         }
         function getWorkingFolder(folder) {
             workingFolderField.text = folder
+            client.workingFolder = folder
         }
         visible: false
         selectExisting: true
@@ -103,7 +108,10 @@ ApplicationWindow {
             width: 0.4*mainWin.width
             font.pointSize: appStyle.textFontSize
             text: client.hosts
-            onEditingFinished: client.hosts = text
+            onEditingFinished: {
+                client.parseAddressList()
+                client.hosts = text
+            }
         }
         Button {
             display: AbstractButton.TextOnly
@@ -129,7 +137,10 @@ ApplicationWindow {
             width: hostTextField.width
             font.pointSize: appStyle.textFontSize
             text: client.files
-            onEditingFinished: client.files = text
+            onEditingFinished: {
+                client.parseFileList()
+                client.files = text
+            }
         }
         Button {
             display: AbstractButton.TextOnly
@@ -212,10 +223,21 @@ ApplicationWindow {
         source: "qrc:/qml/MessageDialog.qml"
     }
 
-    footer: Label {
-        id: mainWinFooter
-        leftPadding: 10
-        rightPadding: 10
-        bottomPadding: 5
+    footer: Row {
+        id: footerRow
+        spacing: 10
+        Label {
+            id: mainWinFooter
+            leftPadding: 5
+            bottomPadding: 5
+            width: parent.width - counters.width - counters.rightPadding - footerRow.spacing
+        }
+        Label {
+            id: counters
+            rightPadding: 5
+            bottomPadding: 5
+            text: client.addrCount + qsTr(" host(s) and ") + client.fileCount + qsTr(" file(s)")
+            horizontalAlignment: Text.AlignRight
+        }
     }
 }

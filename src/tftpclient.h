@@ -11,6 +11,7 @@ class TftpClient : public QObject
     QML_WRITABLE_PROPERTY(QString, files, setFiles, "")
     QML_WRITABLE_PROPERTY(QString, workingFolder, setWorkingFolder, "")
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
+    Q_PROPERTY(int fileCount READ fileCount NOTIFY fileCountChanged)
     QML_READABLE_PROPERTY(int, addrCount, setAddrCount, 0)
     QML_READABLE_PROPERTY(int, addrIndex, setAddrIndex, 0)
 public:
@@ -18,16 +19,23 @@ public:
     Q_INVOKABLE void startDownload();
     Q_INVOKABLE void stopDownload();
     Q_INVOKABLE QString toLocalFile(const QUrl &url);
+    Q_INVOKABLE bool parseAddressList();
+    Q_INVOKABLE bool parseFileList();
     bool running() const { return _running; }
-    void setRunning(bool val) { _running = val; }
+    void setRunning(bool val) {
+        if (_running != val) {
+            _running = val;
+            emit runningChanged();
+        }
+    }
+    int fileCount() const { return _filesList.size(); }
 signals:
     void error(const QString &title, const QString &msg);
     void info(const QString &msg);
     void runningChanged();
+    void fileCountChanged();
 private:
     enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000 };
-    bool parseAddressList(const QString &hosts);
-    bool parseFileList(const QString &files);
     void downloadFileList(const QString &address);
     void dumpStats();
     bool put(const QString &serverAddress, const QString &filename);

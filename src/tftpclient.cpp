@@ -19,13 +19,13 @@ void TftpClient::startDownload()
     setRunning(true);
 
     std::thread th([this]() {
-        if (!parseFileList(_files)) {
+        if (!parseFileList()) {
             return;
         }
         //parse host list
         if (QFile::exists(_hosts)) {
             qInfo() << "Got list of server IP addresses";
-            parseAddressList(_hosts);
+            parseAddressList();
             qInfo() << "Found" << _addrCount << "addresses";
 
             bool stopped = false;
@@ -419,10 +419,10 @@ QByteArray TftpClient::putFilePacket(const QString &filename)
     return(byteArray);
 }
 
-bool TftpClient::parseAddressList(const QString &hosts)
+bool TftpClient::parseAddressList()
 {
     setAddrCount(0);
-    QFile ifile(hosts);
+    QFile ifile(_hosts);
     if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         const QString msg = tr("Cannot open ") + ifile.fileName();
         qCritical() << msg;
@@ -459,16 +459,18 @@ bool TftpClient::parseAddressList(const QString &hosts)
     return true;
 }
 
-bool TftpClient::parseFileList(const QString &files)
+bool TftpClient::parseFileList()
 {
     _filesList.clear();
-    if (!QFile::exists(files)) {
+    emit fileCountChanged();
+    if (!QFile::exists(_files)) {
         //assume that this is a single file
-        _filesList.append(files);
+        _filesList.append(_files);
+        emit fileCountChanged();
         return true;
     }
     //got list of files
-    QFile ifile(files);
+    QFile ifile(_files);
     if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         const QString msg = tr("Cannot open ") + ifile.fileName();
         qCritical() << msg;
@@ -478,11 +480,8 @@ bool TftpClient::parseFileList(const QString &files)
     QTextStream in(&ifile);
     while (!in.atEnd()) {
         _filesList.append(in.readLine().trimmed());
-        if (!_running) {
-            qWarning() << "Stopped by user";
-            return false;
-        }
     }
+    emit fileCountChanged();
     return true;
 }
 
