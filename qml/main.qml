@@ -97,6 +97,7 @@ ApplicationWindow {
 
     Grid {
         id: grid
+        enabled: startBtn.enabled
         anchors {
             top: progressBar.bottom
             topMargin: 20
@@ -199,6 +200,7 @@ ApplicationWindow {
         }
         spacing: 10
         Button {
+            id: startBtn
             enabled: !client.running
             display: AbstractButton.TextOnly
             text: qsTr("Start")
