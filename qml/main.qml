@@ -71,14 +71,24 @@ ApplicationWindow {
         }
     }
 
-    ProgressBar {
-        id: progressBar
-        visible: client.running
+    Label {
+        id: addrIndex
         anchors {
             top: logo.bottom
             topMargin: 20
             horizontalCenter: parent.horizontalCenter
         }
+        visible: progressBar.visible
+        font.pointSize: appStyle.textFontSize - 2
+        text: client.addrIndex
+    }
+    ProgressBar {
+        id: progressBar
+        anchors {
+            top: addrIndex.bottom
+            horizontalCenter: parent.horizontalCenter
+        }
+        visible: client.running
         width: grid.width
         from: 0
         to: client.addrCount

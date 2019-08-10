@@ -469,7 +469,7 @@ bool TftpClient::parseFileList()
 void TftpClient::downloadFileList(const QString &address)
 {
     setAddrIndex(_addrIndex + 1);
-    for (const auto &file: _files) {
+    for (const auto &file: _filesList) {
         if (get(address, file)) {
             break;//stop once a file is downloaded
         }
