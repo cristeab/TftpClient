@@ -46,6 +46,7 @@ void TftpClient::startDownload()
             }
         }
         dumpStats();
+        setRunning(false);
     });
     th.detach();
 }
