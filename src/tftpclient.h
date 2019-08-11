@@ -1,8 +1,10 @@
 #pragma once
 
+#include "qmlhelpers.h"
+#include "ctpl_stl.h"
 #include <QUdpSocket>
 #include <atomic>
-#include "qmlhelpers.h"
+#include <QMutex>
 
 class TftpClient : public QObject
 {
@@ -40,18 +42,23 @@ private:
     enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000 };
     void downloadFileList(const QString &address);
     void dumpStats();
-    bool put(const QString &serverAddress, const QString &filename);
-    bool get(const QString &serverAddress, const QString &filename);
-    bool bindSocket();
+    bool get(int i, const QString &serverAddress, const QString &filename);
+    bool bindSocket(int i);
     void updateInfo();
     QByteArray getFilePacket(const QString &filename);
     QByteArray putFilePacket(const QString &filename);
-    QScopedPointer<QUdpSocket> _socket;
+    struct SocketInfo {
+        QUdpSocket socket;
+        QString lastError;
+    };
+    QScopedPointer<SocketInfo> _socketInfo;
+    int _socketInfoSize = 0;
     uint16_t _serverPort = DEFAULT_PORT;
     QStringList _filesList;
     QMap<QString, QString> _stats;//address is the key
+    QMutex _statsMutex;
     std::atomic<bool> _running;
     QVector<QString> _singleAddresses;
     QVector<QPair<quint32, quint32> > _pairAddresses;
-    QString _lastError;
+    ctpl::thread_pool _threadPool;
 };
