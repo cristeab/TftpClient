@@ -16,7 +16,7 @@ Dialog {
     visible: true
     title: qsTr("Settings")
     modal: true
-    closePolicy: Popup.NoAutoClose
+    closePolicy: Popup.CloseOnEscape
     standardButtons: Dialog.Ok | Dialog.Cancel
     Grid {
         rows: 3

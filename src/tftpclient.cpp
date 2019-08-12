@@ -27,7 +27,14 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
             bindSocket(i);
         }
     });
+    _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
+    if (2 > _numWorkers) {
+        _numWorkers = DEFAULT_NUM_WORKERS;
+    }
+    emit numWorkersChanged();
     loadSettings();
+    parseAddressList();
+    parseFileList();
 }
 
 void TftpClient::startDownload()
@@ -296,6 +303,10 @@ QByteArray TftpClient::putFilePacket(const QString &filename)
 bool TftpClient::parseAddressList()
 {
     setAddrCount(0);
+    if (_hosts.isEmpty()) {
+        qWarning() << "Hosts file is empty";
+        return false;
+    }
     QFile ifile(_hosts);
     if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         const QString msg = tr("Cannot open ") + ifile.fileName();
@@ -337,6 +348,11 @@ bool TftpClient::parseFileList()
 {
     _filesList.clear();
     emit fileCountChanged();
+
+    if (_files.isEmpty()) {
+        qWarning() << "Files file is empty";
+        return false;
+    }
     if (!QFile::exists(_files)) {
         //assume that this is the filename to be downloaded
         _filesList.append(_files);
@@ -422,15 +438,11 @@ void TftpClient::loadSettings()
 
     setHosts(settings.value(HOSTS).toString());
     setFiles(settings.value(FILES).toString());
-    setWorkingFolder(settings.value(WORKING_FOLDER).toString());
+    setWorkingFolder(settings.value(WORKING_FOLDER, _workingFolder).toString());
 
     setServerPort(settings.value(SERVER_PORT, DEFAULT_PORT).toInt());
     setReadDelayMs(settings.value(READ_DELAY_MS, DEFAULT_READ_DELAY_MS).toInt());
 
-    _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
-    if (2 > _numWorkers) {
-        _numWorkers = DEFAULT_NUM_WORKERS;
-    }
     setNumWorkers(settings.value(NUM_WORKERS, _numWorkers).toInt());
 }
 

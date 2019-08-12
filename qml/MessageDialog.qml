@@ -15,7 +15,7 @@ Dialog {
     visible: "" !== controlLabel.text
     title: msgDlgProps.title
     modal: true
-    closePolicy: Popup.NoAutoClose
+    closePolicy: Popup.CloseOnEscape
     standardButtons: msgDlgProps.okCancel ? (Dialog.Ok | Dialog.Cancel) :  Dialog.Ok
     LabelToolTip {
         id: controlLabel

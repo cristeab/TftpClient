@@ -29,6 +29,7 @@ ApplicationWindow {
     }
 
     Button {
+        enabled: !client.running
         anchors {
             top: parent.top
             topMargin: 0
