@@ -12,7 +12,7 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
     setRunning(false);
     _socketInfoSize = static_cast<int>(std::thread::hardware_concurrency());
     if (2 > _socketInfoSize) {
-        _socketInfoSize = 2;
+        _socketInfoSize = 4;
     }
     qInfo() << "Thread count" << _socketInfoSize;
     // BIND OUR LOCAL SOCKET TO AN IP ADDRESS AND PORT
@@ -353,15 +353,22 @@ void TftpClient::downloadFileList(const QString &address)
     setCurrentAddress(address);
     setFileIndex(0);
     for (const auto &file: _filesList) {
-        _threadPool.push([this, address, file](int i) {
+        setFileIndex(_fileIndex + 1);
+        auto f = _threadPool.push([this, address, file](int i) {
             get(i, address, file);
-            setFileIndex(_fileIndex + 1);
         });
+
+        while (0 == _threadPool.n_idle()) {
+            //sleep until some threads become available
+            std::this_thread::sleep_for (std::chrono::milliseconds(100));
+        }
+
         if (!_running) {
             qWarning() << "Stopped by user";
             break;
         }
     }
+
     setAddrIndex(_addrIndex + 1);
 }
 
