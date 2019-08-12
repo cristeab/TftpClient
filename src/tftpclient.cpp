@@ -3,7 +3,16 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QUrl>
+#include <QSettings>
+#include <QGuiApplication>
 #include <thread>
+
+#define HOSTS "HOSTS"
+#define FILES "FILES"
+#define WORKING_FOLDER "WORKING_FOLDER"
+#define SERVER_PORT "SERVER_PORT"
+#define READ_DELAY_MS "READ_DELAY_MS"
+#define NUM_WORKERS "NUM_WORKERS"
 
 TftpClient::TftpClient(QObject *parent) : QObject(parent)
 {
@@ -18,12 +27,7 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
             bindSocket(i);
         }
     });
-
-    _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
-    if (2 > _numWorkers) {
-        _numWorkers = DEFAULT_NUM_WORKERS;
-    }
-    emit numWorkersChanged();
+    loadSettings();
 }
 
 void TftpClient::startDownload()
@@ -212,6 +216,9 @@ bool TftpClient::get(int i, const QString &serverAddress,
         }
     }
 
+    //only one thread accesses the harddisk
+    QMutexLocker locker(&_statsMutex);
+
     //must create folder only once, after the file is downloaded
     //make sure that the destination folder exists
     const QString filePath(_workingFolder + "/" + serverAddress);
@@ -239,7 +246,6 @@ bool TftpClient::get(int i, const QString &serverAddress,
     qInfo() << msg;
     emit info(msg);
 
-    QMutexLocker locker(&_statsMutex);
     _stats[serverAddress] = ofile.fileName();
     updateInfo();
 
@@ -408,4 +414,34 @@ void TftpClient::updateInfo()
         msg = tr("No files have been downloaded");
     }
     emit info(msg);
+}
+
+void TftpClient::loadSettings()
+{
+    QSettings settings(qApp->organizationName(), qApp->applicationName());
+
+    setHosts(settings.value(HOSTS).toString());
+    setFiles(settings.value(FILES).toString());
+    setWorkingFolder(settings.value(WORKING_FOLDER).toString());
+
+    setServerPort(settings.value(SERVER_PORT, DEFAULT_PORT).toInt());
+    setReadDelayMs(settings.value(READ_DELAY_MS, DEFAULT_READ_DELAY_MS).toInt());
+
+    _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
+    if (2 > _numWorkers) {
+        _numWorkers = DEFAULT_NUM_WORKERS;
+    }
+    setNumWorkers(settings.value(NUM_WORKERS, _numWorkers).toInt());
+}
+
+void TftpClient::saveSettings()
+{
+    QSettings settings(qApp->organizationName(), qApp->applicationName());
+
+    settings.setValue(HOSTS, _hosts);
+    settings.setValue(FILES, _files);
+    settings.setValue(WORKING_FOLDER, _workingFolder);
+    settings.setValue(SERVER_PORT, _serverPort);
+    settings.setValue(READ_DELAY_MS, _readDelayMs);
+    settings.setValue(NUM_WORKERS, _numWorkers);
 }

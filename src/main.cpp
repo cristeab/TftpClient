@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
+    app.setApplicationName("TTFP Client");
     app.setOrganizationName("VoIP");
     app.setOrganizationDomain("Comms");
 
@@ -16,6 +17,9 @@ int main(int argc, char *argv[])
     if (nullptr != context) {
         TftpClient *client = new TftpClient();
         context->setContextProperty(client->objectName(), client);
+        QObject::connect(qApp, &QGuiApplication::aboutToQuit, [client]() {
+            client->saveSettings();
+        });
     }
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));

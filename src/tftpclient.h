@@ -20,7 +20,7 @@ class TftpClient : public QObject
     QML_READABLE_PROPERTY(int, fileIndex, setFileIndex, 0)
     //settings props
     QML_WRITABLE_PROPERTY(int, serverPort, setServerPort, DEFAULT_PORT)
-    QML_WRITABLE_PROPERTY(int, readDelayMs, setReadDelayMs, READ_DELAY_MS)
+    QML_WRITABLE_PROPERTY(int, readDelayMs, setReadDelayMs, DEFAULT_READ_DELAY_MS)
     QML_WRITABLE_PROPERTY(int, numWorkers, setNumWorkers, DEFAULT_NUM_WORKERS)
 public:
     explicit TftpClient(QObject *parent = nullptr);
@@ -37,13 +37,14 @@ public:
         }
     }
     int fileCount() const { return _filesList.size(); }
+    void saveSettings();
 signals:
     void error(const QString &title, const QString &msg);
     void info(const QString &msg);
     void runningChanged();
     void fileCountChanged();
 private:
-    enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000,
+    enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, DEFAULT_READ_DELAY_MS = 1000,
            DEFAULT_NUM_WORKERS = 4 };
     void downloadFileList(const QString &address);
     void dumpStats();
@@ -52,6 +53,9 @@ private:
     void updateInfo();
     QByteArray getFilePacket(const QString &filename);
     QByteArray putFilePacket(const QString &filename);
+
+    void loadSettings();
+
     struct SocketInfo {
         QUdpSocket socket;
         QString lastError;
