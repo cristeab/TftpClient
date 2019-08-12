@@ -10,16 +10,20 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
     setWorkingFolder(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
     setObjectName("client");
     setRunning(false);
-    _socketInfoSize = static_cast<int>(std::thread::hardware_concurrency());
-    if (2 > _socketInfoSize) {
-        _socketInfoSize = 4;
+
+    connect(this, &TftpClient::numWorkersChanged, [&]() {
+        // BIND OUR LOCAL SOCKET TO AN IP ADDRESS AND PORT
+        _socketInfo.reset(new SocketInfo[_numWorkers]);
+        for (int i = 0; i < _numWorkers; ++i) {
+            bindSocket(i);
+        }
+    });
+
+    _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
+    if (2 > _numWorkers) {
+        _numWorkers = DEFAULT_NUM_WORKERS;
     }
-    qInfo() << "Thread count" << _socketInfoSize;
-    // BIND OUR LOCAL SOCKET TO AN IP ADDRESS AND PORT
-    _socketInfo.reset(new SocketInfo[_socketInfoSize]);
-    for (int i = 0; i < _socketInfoSize; ++i) {
-        bindSocket(i);
-    }
+    emit numWorkersChanged();
 }
 
 void TftpClient::startDownload()
@@ -30,7 +34,7 @@ void TftpClient::startDownload()
 
     std::thread th([this]() {
         _threadPool.init();
-        _threadPool.resize(_socketInfoSize);
+        _threadPool.resize(_numWorkers);
         bool stopped = false;
         setAddrIndex(0);
         for (const auto &ip: _singleAddresses) {
@@ -84,7 +88,7 @@ QString TftpClient::toLocalFile(const QUrl &url)
 bool TftpClient::get(int i, const QString &serverAddress,
                      const QString &filename)
 {
-    if ((0 > i) || (_socketInfoSize <= i)) {
+    if ((0 > i) || (_numWorkers <= i)) {
         qCritical() << "Invalid index";
         return false;
     }
@@ -129,7 +133,8 @@ bool TftpClient::get(int i, const QString &serverAddress,
     QByteArray requestedFile;
     while (!messageCompleteFlag){
         // WAIT FOR AN INCOMING PACKET
-        if (sockInfo->socket.hasPendingDatagrams() || sockInfo->socket.waitForReadyRead(READ_DELAY_MS)) {
+        if (sockInfo->socket.hasPendingDatagrams() ||
+                sockInfo->socket.waitForReadyRead(_readDelayMs)) {
             // ITERATE HERE AS LONG AS THERE IS ATLEAST A
             // PACKET HEADER'S WORTH OF DATA TO READ
             QByteArray incomingDatagram;
@@ -243,7 +248,7 @@ bool TftpClient::get(int i, const QString &serverAddress,
 
 bool TftpClient::bindSocket(int i)
 {
-    if ((0 > i) || (_socketInfoSize <= i)) {
+    if ((0 > i) || (_numWorkers <= i)) {
         qCritical() << "Invalid index";
         return false;
     }

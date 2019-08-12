@@ -6,4 +6,5 @@ QtObject {
 
     readonly property int textFontSize: isMac ? 14 : 12
     readonly property int buttonFontSize: isMac ? 13 : 11
+    readonly property int textFieldWidth: 200
 }

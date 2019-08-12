@@ -15,6 +15,7 @@ ApplicationWindow {
     }
     QtObject {
         id: msgDlgProps
+        property bool okCancel: false
         property string title: ""
         property string text: ""
         function show(t, m) {
@@ -25,6 +26,21 @@ ApplicationWindow {
     Connections {
         target: client
         onInfo: mainWinFooter.text = msg
+    }
+
+    Button {
+        anchors {
+            top: parent.top
+            topMargin: 0
+            right: parent.right
+            rightMargin: 5
+        }
+        text: qsTr("Settings")
+        display: AbstractButton.TextOnly
+        onClicked: {
+            settingsDlg.active = true
+            settingsDlg.item.visible = true
+        }
     }
 
     Image {
@@ -183,6 +199,7 @@ ApplicationWindow {
             width: 0.4*mainWin.width
             font.pointSize: appStyle.textFontSize
             text: client.hosts
+            selectByMouse: true
             onEditingFinished: {
                 client.parseAddressList()
                 client.hosts = text
@@ -212,6 +229,7 @@ ApplicationWindow {
             width: hostTextField.width
             font.pointSize: appStyle.textFontSize
             text: client.files
+            selectByMouse: true
             onEditingFinished: {
                 client.parseFileList()
                 client.files = text
@@ -242,6 +260,7 @@ ApplicationWindow {
             text: client.workingFolder
             onEditingFinished: client.workingFolder = text
             font.pointSize: appStyle.textFontSize
+            selectByMouse: true
         }
         Button {
             display: AbstractButton.TextOnly
@@ -297,6 +316,11 @@ ApplicationWindow {
     Loader {
         active: "" !== msgDlgProps.text
         source: "qrc:/qml/MessageDialog.qml"
+    }
+    Loader {
+        id: settingsDlg
+        active: false
+        source: "qrc:/qml/SettingsDialog.qml"
     }
 
     footer: Label {

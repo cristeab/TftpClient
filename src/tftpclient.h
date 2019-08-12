@@ -18,6 +18,10 @@ class TftpClient : public QObject
     QML_READABLE_PROPERTY(int, addrIndex, setAddrIndex, 0)
     QML_READABLE_PROPERTY(QString, currentAddress, setCurrentAddress, "")
     QML_READABLE_PROPERTY(int, fileIndex, setFileIndex, 0)
+    //settings props
+    QML_WRITABLE_PROPERTY(int, serverPort, setServerPort, DEFAULT_PORT)
+    QML_WRITABLE_PROPERTY(int, readDelayMs, setReadDelayMs, READ_DELAY_MS)
+    QML_WRITABLE_PROPERTY(int, numWorkers, setNumWorkers, DEFAULT_NUM_WORKERS)
 public:
     explicit TftpClient(QObject *parent = nullptr);
     Q_INVOKABLE void startDownload();
@@ -39,7 +43,8 @@ signals:
     void runningChanged();
     void fileCountChanged();
 private:
-    enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000 };
+    enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, READ_DELAY_MS = 1000,
+           DEFAULT_NUM_WORKERS = 4 };
     void downloadFileList(const QString &address);
     void dumpStats();
     bool get(int i, const QString &serverAddress, const QString &filename);
@@ -52,8 +57,6 @@ private:
         QString lastError;
     };
     QScopedPointer<SocketInfo> _socketInfo;
-    int _socketInfoSize = 0;
-    uint16_t _serverPort = DEFAULT_PORT;
     QStringList _filesList;
     QMap<QString, QString> _stats;//address is the key
     QMutex _statsMutex;
