@@ -197,6 +197,7 @@ public:
         return pck->get_future();
     }
 
+    void init() { this->nWaiting = 0; this->isStop = false; this->isDone = false; }
 
 private:
 
@@ -232,8 +233,6 @@ private:
         };
         this->threads[i].reset(new std::thread(f)); // compiler may not support std::make_unique()
     }
-
-    void init() { this->nWaiting = 0; this->isStop = false; this->isDone = false; }
 
     std::vector<std::unique_ptr<std::thread>> threads;
     std::vector<std::shared_ptr<std::atomic<bool>>> flags;

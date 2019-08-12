@@ -29,6 +29,7 @@ void TftpClient::startDownload()
     setRunning(true);
 
     std::thread th([this]() {
+        _threadPool.init();
         _threadPool.resize(_socketInfoSize);
         bool stopped = false;
         setAddrIndex(0);
@@ -350,18 +351,18 @@ bool TftpClient::parseFileList()
 void TftpClient::downloadFileList(const QString &address)
 {
     setCurrentAddress(address);
-    setAddrIndex(_addrIndex + 1);
     setFileIndex(0);
     for (const auto &file: _filesList) {
-        setFileIndex(_fileIndex + 1);
         _threadPool.push([this, address, file](int i) {
             get(i, address, file);
+            setFileIndex(_fileIndex + 1);
         });
         if (!_running) {
             qWarning() << "Stopped by user";
             break;
         }
     }
+    setAddrIndex(_addrIndex + 1);
 }
 
 void TftpClient::dumpStats()
