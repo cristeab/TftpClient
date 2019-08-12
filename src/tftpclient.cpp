@@ -28,7 +28,7 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
         }
     });
     _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
-    if (2 > _numWorkers) {
+    if (DEFAULT_NUM_WORKERS > _numWorkers) {
         _numWorkers = DEFAULT_NUM_WORKERS;
     }
     emit numWorkersChanged();
