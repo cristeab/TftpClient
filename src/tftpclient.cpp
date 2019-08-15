@@ -44,8 +44,10 @@ void TftpClient::startDownload()
     setRunning(true);
 
     std::thread th([this]() {
-        _threadPool.init();
-        _threadPool.resize(_numWorkers);
+        if (1 < _numWorkers) {
+            _threadPool.init();
+            _threadPool.resize(_numWorkers);
+        }
         bool stopped = false;
         setAddrIndex(0);
         for (const auto &ip: _singleAddresses) {
@@ -381,13 +383,17 @@ void TftpClient::downloadFileList(const QString &address)
     setFileIndex(0);
     for (const auto &file: _filesList) {
         setFileIndex(_fileIndex + 1);
-        auto f = _threadPool.push([this, address, file](int i) {
-            get(i, address, file);
-        });
+        if (1 < _numWorkers) {
+            auto f = _threadPool.push([this, address, file](int i) {
+                get(i, address, file);
+            });
 
-        while (0 == _threadPool.n_idle()) {
-            //sleep until some threads become available
-            std::this_thread::sleep_for (std::chrono::milliseconds(100));
+            while (0 == _threadPool.n_idle()) {
+                //sleep until some threads become available
+                std::this_thread::sleep_for (std::chrono::milliseconds(100));
+            }
+        } else {
+            get(0, address, file);
         }
 
         if (!_running) {
