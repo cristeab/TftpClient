@@ -83,7 +83,6 @@ elseif (WIN32)
     set(CPACK_NSIS_URL_INFO_ABOUT "TODO")
     set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
     set(CPACK_NSIS_EXECUTABLES_DIRECTORY ".")
-    set(CPACK_NSIS_MENU_LINKS "TODO")
 
     add_custom_target(windeployqt ALL
         ${WINDEPLOYQT}
