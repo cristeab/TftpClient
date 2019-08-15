@@ -20,14 +20,12 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
     setObjectName("client");
     setRunning(false);
 
-    connect(this, &TftpClient::numWorkersChanged, [&]() {
-        _socketInfo.reset(new SocketInfo[_numWorkers]);
-    });
     _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
     if (DEFAULT_NUM_WORKERS > _numWorkers) {
         _numWorkers = DEFAULT_NUM_WORKERS;
     }
     emit numWorkersChanged();
+    _socketInfo.reset(new SocketInfo[_numWorkers]);
     loadSettings();
     parseAddressList();
     parseFileList();

@@ -9,6 +9,9 @@ Dialog {
     y: (mainWin.height-height)/2
     z: 2
     onAccepted: {
+        if (msgDlgProps.fatalError) {
+            Qt.quit()
+        }
         msgDlgProps.title = ""
         msgDlgProps.text = ""
     }

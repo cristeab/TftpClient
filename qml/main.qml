@@ -18,6 +18,7 @@ ApplicationWindow {
         property bool okCancel: false
         property string title: ""
         property string text: ""
+        property bool fatalError: false
         function show(t, m) {
             msgDlgProps.text = m
             msgDlgProps.title = t

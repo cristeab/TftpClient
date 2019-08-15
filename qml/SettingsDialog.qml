@@ -11,7 +11,11 @@ Dialog {
     onAccepted: {
         client.serverPort = tftpPort.text
         client.readDelayMs = timeout.text
-        client.numWorkers = numWorkers.text
+        if (client.numWorkers !== numWorkers.value) {
+            client.numWorkers = numWorkers.value
+            msgDlgProps.fatalError = true
+            msgDlgProps.show(qsTr("Warning"), qsTr("The application will be closed.\nPlease restart the application."))
+        }
     }
     visible: true
     title: qsTr("Settings")
@@ -62,19 +66,22 @@ Dialog {
             font.pointSize: appStyle.textFontSize
             height: numWorkers.height
             verticalAlignment: Text.AlignVCenter
+            width: subLabel.width
+            Label {
+                id: subLabel
+                anchors.bottom: parent.bottom
+                font.pointSize: appStyle.textFontSize - 4
+                text: qsTr("(the application must be restarted)")
+            }
         }
-        TextField {
+        SpinBox {
             id: numWorkers
-            text: client.numWorkers
+            value: client.numWorkers
+            from: 1
+            editable: true
             validator: IntValidator { bottom: 1 }
             width: appStyle.textFieldWidth
             font.pointSize: appStyle.textFontSize
-            selectByMouse: true
-            onTextChanged: {
-                if (0 === parseInt(text)) {
-                    numWorkers.text = 1
-                }
-            }
         }
     }
 }
