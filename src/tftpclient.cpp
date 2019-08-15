@@ -131,8 +131,10 @@ bool TftpClient::get(int i, const QString &serverAddress,
     // CREATE REQUEST PACKET AND SEND TO HOST
     // WAIT UNTIL MESSAGE HAS BEEN SENT, QUIT IF TIMEOUT IS REACHED
     QByteArray reqPacket=getFilePacket(filename);
-    if (sockInfo->socket.writeDatagram(reqPacket, hostAddress, _serverPort) != reqPacket.length()) {
-        sockInfo->lastError =  QString("Cannot send packet to host : %1").arg(sockInfo->socket.errorString());
+    if (sockInfo->socket.writeDatagram(reqPacket, hostAddress,
+                                       static_cast<quint16>(_serverPort)) !=
+            reqPacket.length()) {
+        sockInfo->lastError = QString("Cannot send packet to host : %1").arg(sockInfo->socket.errorString());
         qCritical() << sockInfo->lastError;
         return false;
     }
@@ -209,7 +211,8 @@ bool TftpClient::get(int i, const QString &serverAddress,
                 ackByteArray.append(inPtr[0]);
 
                 // SEND THE PACKET AND MAKE SURE IT GETS SENT
-                if (sockInfo->socket.writeDatagram(ackByteArray, hostAddress, _serverPort) != ackByteArray.length()) {
+                if (sockInfo->socket.writeDatagram(ackByteArray, hostAddress,
+                                                   static_cast<quint16>(_serverPort)) != ackByteArray.length()) {
                     sockInfo->lastError = QString("Cannot send ack packet to host : %1").arg(sockInfo->socket.errorString());
                     qCritical() << sockInfo->lastError;
                     return false;
@@ -219,8 +222,8 @@ bool TftpClient::get(int i, const QString &serverAddress,
                 outgoingPacketNumber++;
             }
         } else {
-            sockInfo->lastError = QString("No message received from host : %1").arg(sockInfo->socket.errorString());
-            qCritical() << sockInfo->lastError;
+            //sockInfo->lastError = QString("No message received from host : %1").arg(sockInfo->socket.errorString());
+            //qCritical() << sockInfo->lastError;
             return false;
         }
     }
