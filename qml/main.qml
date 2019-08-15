@@ -290,16 +290,16 @@ ApplicationWindow {
             text: qsTr("Start")
             font.pointSize: appStyle.buttonFontSize
             onClicked: {
-                if ("" === client.hosts) {
-                    msgDlgProps.show(qsTr("Error"), qsTr("Hosts field cannot be empty"))
+                if (0 === client.addrCount) {
+                    msgDlgProps.show(qsTr("Error"), qsTr("At least one host IP address must be specified"))
                     return
                 }
-                if ("" === client.files) {
-                    msgDlgProps.show(qsTr("Error"), qsTr("Files field cannot be empty"))
+                if ("" === client.fileCount) {
+                    msgDlgProps.show(qsTr("Error"), qsTr("At least one filename must be specified"))
                     return
                 }
                 if ("" === client.workingFolder) {
-                    msgDlgProps.show(qsTr("Error"), qsTr("Working folder field cannot be empty"))
+                    msgDlgProps.show(qsTr("Error"), qsTr("Working folder must be specified"))
                     return
                 }
                 client.startDownload(hostTextField.text, fileTextField.text)
