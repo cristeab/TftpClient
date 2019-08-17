@@ -20,13 +20,9 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
     setObjectName("client");
     setRunning(false);
 
-    _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
-    if (DEFAULT_NUM_WORKERS > _numWorkers) {
-        _numWorkers = DEFAULT_NUM_WORKERS;
-    }
-    emit numWorkersChanged();
-    _socketInfo.reset(new SocketInfo[_numWorkers]);
     loadSettings();
+
+    _socketInfo.reset(new SocketInfo[_numWorkers]);
     parseAddressList();
     parseFileList();
 }
@@ -442,6 +438,12 @@ void TftpClient::loadSettings()
     setServerPort(settings.value(SERVER_PORT, DEFAULT_PORT).toInt());
     setReadDelayMs(settings.value(READ_DELAY_MS, DEFAULT_READ_DELAY_MS).toInt());
 
+    //default value
+    _numWorkers = static_cast<int>(std::thread::hardware_concurrency());
+    if (DEFAULT_NUM_WORKERS > _numWorkers) {
+        _numWorkers = DEFAULT_NUM_WORKERS;
+    }
+    //then value from settings if any
     setNumWorkers(settings.value(NUM_WORKERS, _numWorkers).toInt());
 }
 
