@@ -141,7 +141,7 @@ ApplicationWindow {
             horizontalCenter: parent.horizontalCenter
         }
         font: addrIndex.font
-        text: qsTr("Downloading from ") + client.currentAddress + " ..."
+        text: qsTr("Downloading ") + client.currentFilename + qsTr(" from ") + client.currentAddress + " ..."
         horizontalAlignment: Text.AlignHCenter
     }
     /*Label {

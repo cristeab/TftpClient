@@ -343,7 +343,7 @@ bool TftpClient::parseAddressList()
 void TftpClient::downloadFileList(const QString &address)
 {
     setCurrentAddress(address);
-    setFileIndex(0);
+    setCurrentFilename("");
     _found = false;
 
     if (!QFile::exists(_files)) {
@@ -364,7 +364,7 @@ void TftpClient::downloadFileList(const QString &address)
     QTextStream in(&ifile);
     while (!in.atEnd()) {
         const QString file = generateFilename(in.readLine().trimmed());
-        setFileIndex(_fileIndex + 1);
+        setCurrentFilename(file);
         if (1 < _numWorkers) {
             auto f = _threadPool.push([this, address, file](int i) {
                 _found = get(i, address, file);

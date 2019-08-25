@@ -18,7 +18,7 @@ class TftpClient : public QObject
     QML_READABLE_PROPERTY(int, addrCount, setAddrCount, 0)
     QML_READABLE_PROPERTY(int, addrIndex, setAddrIndex, 0)
     QML_READABLE_PROPERTY(QString, currentAddress, setCurrentAddress, "")
-    QML_READABLE_PROPERTY(int, fileIndex, setFileIndex, 0)
+    QML_READABLE_PROPERTY(QString, currentFilename, setCurrentFilename, "")
     //settings props
     QML_WRITABLE_PROPERTY(int, serverPort, setServerPort, DEFAULT_PORT)
     QML_WRITABLE_PROPERTY(int, readDelayMs, setReadDelayMs, DEFAULT_READ_DELAY_MS)
