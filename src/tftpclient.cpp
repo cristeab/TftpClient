@@ -8,7 +8,9 @@
 #include <thread>
 
 #define HOSTS "HOSTS"
+#define PREFIX "PREFIX"
 #define FILES "FILES"
+#define EXT "EXT"
 #define WORKING_FOLDER "WORKING_FOLDER"
 #define SERVER_PORT "SERVER_PORT"
 #define READ_DELAY_MS "READ_DELAY_MS"
@@ -446,7 +448,9 @@ void TftpClient::loadSettings()
     QSettings settings(qApp->organizationName(), qApp->applicationName());
 
     setHosts(settings.value(HOSTS).toString());
+    setPrefix(settings.value(PREFIX).toString());
     setFiles(settings.value(FILES).toString());
+    setExtension(settings.value(EXT).toString());
     setWorkingFolder(settings.value(WORKING_FOLDER, _workingFolder).toString());
 
     setServerPort(settings.value(SERVER_PORT, DEFAULT_PORT).toInt());
@@ -466,7 +470,9 @@ void TftpClient::saveSettings()
     QSettings settings(qApp->organizationName(), qApp->applicationName());
 
     settings.setValue(HOSTS, _hosts);
+    settings.setValue(PREFIX, _prefix);
     settings.setValue(FILES, _files);
+    settings.setValue(EXT, _extension);
     settings.setValue(WORKING_FOLDER, _workingFolder);
     settings.setValue(SERVER_PORT, _serverPort);
     settings.setValue(READ_DELAY_MS, _readDelayMs);
