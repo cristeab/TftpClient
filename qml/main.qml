@@ -70,7 +70,6 @@ ApplicationWindow {
         function getFiles(files) {
             fileTextField.text = files
             client.files = files
-            client.parseFileList()
         }
         function getWorkingFolder(folder) {
             workingFolderField.text = folder
@@ -145,7 +144,7 @@ ApplicationWindow {
         text: qsTr("Downloading from ") + client.currentAddress + " ..."
         horizontalAlignment: Text.AlignHCenter
     }
-    Label {
+    /*Label {
         anchors {
             horizontalCenter: fileProgressBar.left
             verticalCenter: currentAddr.verticalCenter
@@ -162,7 +161,7 @@ ApplicationWindow {
         font: addrIndex.font
         text: fileProgressBar.to
         horizontalAlignment: Text.AlignHCenter
-    }
+    }*/
     ProgressBar {
         id: fileProgressBar
         anchors {
@@ -172,9 +171,7 @@ ApplicationWindow {
         }
         visible: true
         width: grid.width
-        from: 0
-        to: client.fileCount
-        value: client.fileIndex
+        indeterminate: client.running
     }
 
     Grid {
@@ -342,7 +339,6 @@ ApplicationWindow {
                     msgDlgProps.show(qsTr("Error"), qsTr("Working folder must be specified"))
                     return
                 }
-                client.parseFileList()
                 client.startDownload(hostTextField.text, fileTextField.text)
             }
         }

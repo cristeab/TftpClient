@@ -15,7 +15,6 @@ class TftpClient : public QObject
     QML_WRITABLE_PROPERTY(QString, extension, setExtension, "cfg")
     QML_WRITABLE_PROPERTY(QString, workingFolder, setWorkingFolder, "")
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
-    Q_PROPERTY(int fileCount READ fileCount NOTIFY fileCountChanged)
     QML_READABLE_PROPERTY(int, addrCount, setAddrCount, 0)
     QML_READABLE_PROPERTY(int, addrIndex, setAddrIndex, 0)
     QML_READABLE_PROPERTY(QString, currentAddress, setCurrentAddress, "")
@@ -30,7 +29,6 @@ public:
     Q_INVOKABLE void stopDownload();
     Q_INVOKABLE QString toLocalFile(const QUrl &url);
     Q_INVOKABLE bool parseAddressList();
-    Q_INVOKABLE bool parseFileList();
     bool running() const { return _running; }
     void setRunning(bool val) {
         if (_running != val) {
@@ -38,13 +36,11 @@ public:
             emit runningChanged();
         }
     }
-    int fileCount() const { return _filesList.size(); }
     void saveSettings();
 signals:
     void error(const QString &title, const QString &msg);
     void info(const QString &msg);
     void runningChanged();
-    void fileCountChanged();
 private:
     enum { DEFAULT_PORT = 69, MAX_PACKET_SIZE = 512, DEFAULT_READ_DELAY_MS = 1000,
            DEFAULT_NUM_WORKERS = 4 };
@@ -54,18 +50,18 @@ private:
     void updateInfo();
     QByteArray getFilePacket(const QString &filename);
     QByteArray putFilePacket(const QString &filename);
-
     void loadSettings();
+    QString generateFilename(const QString &suffix);
 
     struct SocketInfo {
         QScopedPointer<QUdpSocket> socket;
         QString lastError;
     };
     QScopedPointer<SocketInfo> _socketInfo;
-    QStringList _filesList;
     QMap<QString, QString> _stats;//address is the key
     QMutex _statsMutex;
     std::atomic<bool> _running;
+    std::atomic<bool> _found;
     QVector<QString> _singleAddresses;
     QVector<QPair<quint32, quint32> > _pairAddresses;
     ctpl::thread_pool _threadPool;

@@ -26,7 +26,6 @@ TftpClient::TftpClient(QObject *parent) : QObject(parent)
 
     _socketInfo.reset(new SocketInfo[_numWorkers]);
     parseAddressList();
-    parseFileList();
 }
 
 void TftpClient::startDownload()
@@ -50,7 +49,6 @@ void TftpClient::startDownload()
                 break;
             }
         }
-        qDebug() << "Finished single addresses";
         if (!stopped) {
             for (const auto &pairIp: _pairAddresses) {
                 for (quint32 ipNum = pairIp.first; ipNum <= pairIp.second; ++ipNum) {
@@ -66,7 +64,6 @@ void TftpClient::startDownload()
                     break;
                 }
             }
-            qDebug() << "Finished address ranges";
         }
         //wait until all threads finish
         _threadPool.stop(_running);
@@ -343,62 +340,46 @@ bool TftpClient::parseAddressList()
     return true;
 }
 
-bool TftpClient::parseFileList()
+void TftpClient::downloadFileList(const QString &address)
 {
-    _filesList.clear();
-    emit fileCountChanged();
+    setCurrentAddress(address);
+    setFileIndex(0);
+    _found = false;
 
-    if (_files.isEmpty()) {
-        qWarning() << "Files file is empty";
-        return false;
-    }
     if (!QFile::exists(_files)) {
         //assume that this is the filename to be downloaded
-        QString fn = _prefix + _files;
-        if (2 > _files.split('.').size()) {
-            fn += _extension;
-        }
-        _filesList.append(fn);
-        emit fileCountChanged();
-        return true;
+        const QString file = generateFilename(_files);
+        get(0, address, file);
+        return;
     }
+
     //got list of files
     QFile ifile(_files);
     if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         const QString msg = tr("Cannot open ") + ifile.fileName();
         qCritical() << msg;
         emit error(tr("Error"), msg);
-        return false;
+        return;
     }
     QTextStream in(&ifile);
     while (!in.atEnd()) {
-        QString fn = _prefix + in.readLine().trimmed();
-        if (2 > _files.split('.').size()) {
-            fn += _extension;
-        }
-        _filesList.append(fn);
-    }
-    emit fileCountChanged();
-    return true;
-}
-
-void TftpClient::downloadFileList(const QString &address)
-{
-    setCurrentAddress(address);
-    setFileIndex(0);
-    for (const auto &file: _filesList) {
+        const QString file = generateFilename(in.readLine().trimmed());
         setFileIndex(_fileIndex + 1);
         if (1 < _numWorkers) {
             auto f = _threadPool.push([this, address, file](int i) {
-                get(i, address, file);
+                _found = get(i, address, file);
             });
 
-            while (0 == _threadPool.n_idle()) {
+            while (0 == _threadPool.n_idle() && !_found) {
                 //sleep until some threads become available
                 std::this_thread::sleep_for (std::chrono::milliseconds(100));
             }
         } else {
-            get(0, address, file);
+            _found = get(0, address, file);
+        }
+
+        if (_found) {
+            break;
         }
 
         if (!_running) {
@@ -477,4 +458,13 @@ void TftpClient::saveSettings()
     settings.setValue(SERVER_PORT, _serverPort);
     settings.setValue(READ_DELAY_MS, _readDelayMs);
     settings.setValue(NUM_WORKERS, _numWorkers);
+}
+
+QString TftpClient::generateFilename(const QString &suffix)
+{
+    QString fn = _prefix + suffix;
+    if (!_extension.isEmpty()) {
+        fn += "." + _extension;
+    }
+    return fn;
 }
