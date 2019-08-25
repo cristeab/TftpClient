@@ -48,6 +48,7 @@ void TftpClient::startDownload()
                 break;
             }
         }
+        qDebug() << "Finished single addresses";
         if (!stopped) {
             for (const auto &pairIp: _pairAddresses) {
                 for (quint32 ipNum = pairIp.first; ipNum <= pairIp.second; ++ipNum) {
@@ -63,6 +64,7 @@ void TftpClient::startDownload()
                     break;
                 }
             }
+            qDebug() << "Finished address ranges";
         }
         //wait until all threads finish
         _threadPool.stop(_running);
@@ -293,6 +295,8 @@ QByteArray TftpClient::putFilePacket(const QString &filename)
 
 bool TftpClient::parseAddressList()
 {
+    _singleAddresses.clear();
+    _pairAddresses.clear();
     setAddrCount(0);
     if (_hosts.isEmpty()) {
         qWarning() << "Hosts file is empty";
@@ -331,6 +335,8 @@ bool TftpClient::parseAddressList()
             }
         }
     }
+    qDebug() << "Single addresses" << _singleAddresses.size();
+    qDebug() << "Address ranges" << _pairAddresses.size();
     emit addrCountChanged();
     return true;
 }
