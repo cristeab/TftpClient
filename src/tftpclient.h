@@ -10,7 +10,9 @@ class TftpClient : public QObject
 {
     Q_OBJECT
     QML_WRITABLE_PROPERTY(QString, hosts, setHosts, "")
+    QML_WRITABLE_PROPERTY(QString, prefix, setPrefix, "")
     QML_WRITABLE_PROPERTY(QString, files, setFiles, "")
+    QML_WRITABLE_PROPERTY(QString, extension, setExtension, "cfg")
     QML_WRITABLE_PROPERTY(QString, workingFolder, setWorkingFolder, "")
     Q_PROPERTY(bool running READ running NOTIFY runningChanged)
     Q_PROPERTY(int fileCount READ fileCount NOTIFY fileCountChanged)

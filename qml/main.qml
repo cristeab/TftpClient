@@ -6,7 +6,7 @@ ApplicationWindow {
     id: mainWin
     visible: true
     width: 640
-    height: 480
+    height: 550
     title: qsTr("TFTP Client")
 
     //application style props
@@ -188,7 +188,7 @@ ApplicationWindow {
         rowSpacing: 5
         columnSpacing: 10
         columns: 3
-        rows: 3
+
         Label {
             height: hostTextField.height
             verticalAlignment: Text.AlignVCenter
@@ -219,23 +219,41 @@ ApplicationWindow {
                 fileDialog.visible = true
             }
         }
+
+        Label {
+            height: prefixTextField.height
+            verticalAlignment: Text.AlignVCenter
+            text: qsTr("Filename prefix")
+            font.pointSize: appStyle.textFontSize
+        }
+        TextField {
+            id: prefixTextField
+            placeholderText: qsTr("Remote filename prefix")
+            width: hostTextField.width
+            font.pointSize: appStyle.textFontSize
+            text: client.prefix
+            selectByMouse: true
+            onEditingFinished: client.prefix = text
+        }
+        Item {
+            width: 1
+            height: 1
+        }
+
         Label {
             height: fileTextField.height
             verticalAlignment: Text.AlignVCenter
-            text: qsTr("Filename(s)")
+            text: qsTr("Filename suffix")
             font.pointSize: appStyle.textFontSize
         }
         TextField {
             id: fileTextField
-            placeholderText: qsTr("Remote filename(s)")
+            placeholderText: qsTr("Remote filename suffix")
             width: hostTextField.width
             font.pointSize: appStyle.textFontSize
             text: client.files
             selectByMouse: true
-            onEditingFinished: {
-                client.parseFileList()
-                client.files = text
-            }
+            onEditingFinished: client.files = text
         }
         Button {
             display: AbstractButton.TextOnly
@@ -249,6 +267,27 @@ ApplicationWindow {
                 fileDialog.visible = true
             }
         }
+
+        Label {
+            height: extTextField.height
+            verticalAlignment: Text.AlignVCenter
+            text: qsTr("Filename extension")
+            font.pointSize: appStyle.textFontSize
+        }
+        TextField {
+            id: extTextField
+            placeholderText: qsTr("Remote filename extension")
+            width: hostTextField.width
+            font.pointSize: appStyle.textFontSize
+            text: client.extension
+            selectByMouse: true
+            onEditingFinished: client.extension = text
+        }
+        Item {
+            width: 1
+            height: 1
+        }
+
         Label {
             height: workingFolderField.height
             verticalAlignment: Text.AlignVCenter
@@ -303,6 +342,7 @@ ApplicationWindow {
                     msgDlgProps.show(qsTr("Error"), qsTr("Working folder must be specified"))
                     return
                 }
+                client.parseFileList()
                 client.startDownload(hostTextField.text, fileTextField.text)
             }
         }

@@ -352,7 +352,11 @@ bool TftpClient::parseFileList()
     }
     if (!QFile::exists(_files)) {
         //assume that this is the filename to be downloaded
-        _filesList.append(_files);
+        QString fn = _prefix + _files;
+        if (2 > _files.split('.').size()) {
+            fn += _extension;
+        }
+        _filesList.append(fn);
         emit fileCountChanged();
         return true;
     }
@@ -366,7 +370,11 @@ bool TftpClient::parseFileList()
     }
     QTextStream in(&ifile);
     while (!in.atEnd()) {
-        _filesList.append(in.readLine().trimmed());
+        QString fn = _prefix + in.readLine().trimmed();
+        if (2 > _files.split('.').size()) {
+            fn += _extension;
+        }
+        _filesList.append(fn);
     }
     emit fileCountChanged();
     return true;
