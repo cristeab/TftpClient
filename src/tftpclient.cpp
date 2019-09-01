@@ -306,6 +306,7 @@ bool TftpClient::parseAddressList()
     QHostAddress hostAddr(_hosts.trimmed());
     if (QAbstractSocket::IPv4Protocol == hostAddr.protocol()) {
         _singleAddresses.append(_hosts.trimmed());
+        setAddrCount(1);
         return true;
     }
 
