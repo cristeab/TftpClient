@@ -301,6 +301,15 @@ bool TftpClient::parseAddressList()
         qWarning() << "Hosts file is empty";
         return false;
     }
+
+    //one address provided
+    QHostAddress hostAddr(_hosts.trimmed());
+    if (QAbstractSocket::IPv4Protocol == hostAddr.protocol()) {
+        _singleAddresses.append(_hosts.trimmed());
+        return true;
+    }
+
+    //addresses provided in a file
     QFile ifile(_hosts);
     if (!ifile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         const QString msg = tr("Cannot open ") + ifile.fileName();
@@ -308,7 +317,6 @@ bool TftpClient::parseAddressList()
         emit error(tr("Error"), msg);
         return false;
     }
-    QHostAddress hostAddr;
     QTextStream in(&ifile);
     while (!in.atEnd()) {
         const QString line = in.readLine().trimmed();
