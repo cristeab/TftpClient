@@ -126,6 +126,14 @@ bool TftpClient::get(int i, const QString &serverAddress,
     const QHostAddress hostAddress(serverAddress);
 
     // CLEAN OUT ANY INCOMING PACKETS
+    if (QAbstractSocket::BoundState != socket->state()) {
+        bool rc = socket->bind();
+        if (!rc) {
+            qCritical() << "Cannot bind socket" << i << ":"
+                        << socket->errorString();
+            return false;
+        }
+    }
     while (socket->hasPendingDatagrams()){
         QByteArray byteArray;
         byteArray.resize(static_cast<int>(socket->pendingDatagramSize()));
