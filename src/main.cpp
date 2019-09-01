@@ -12,6 +12,8 @@ int main(int argc, char *argv[])
     app.setOrganizationName("VoIP");
     app.setOrganizationDomain("Comms");
 
+    qSetMessagePattern("%{appname} [%{threadid}] [%{type}] %{message} (%{file}:%{line})");
+
     QQmlApplicationEngine engine;
     QQmlContext *context = engine.rootContext();
     if (nullptr != context) {
