@@ -4,7 +4,7 @@ Client used to get files from a list of servers using TFTP protocol. A file pref
 
 ![Main Screen](screenshot.png)
 
-# Dependeces
+# Dependences
 
 - Qt 5.13+
 
